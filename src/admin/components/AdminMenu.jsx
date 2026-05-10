@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import Modal from "./Modal";
 import ImageCropModal from "./ImageCropModal";
 import TrashIcon from "./Fonts/TrashIcon";
-const BASE_URL = ""; //https://quickkart-3f8h.onrender.com
+// const BASE_URL = ""; //https://quickkart-3f8h.onrender.com
+import { API_BASE } from "../config";
 
 export default function AdminMenu() {
 
@@ -93,7 +94,7 @@ export default function AdminMenu() {
     // 🔥 FETCH ITEMS
     const fetchItems = () => {
 
-        fetch(`/admin/menu`, {  //`${BASE_URL}/admin/menu`
+        fetch(`${API_BASE}/api/admin/menu`, {  //`${BASE_URL}/admin/menu`
             headers: {
                 Authorization:
                     `Bearer ${
@@ -190,7 +191,7 @@ export default function AdminMenu() {
         }
 
         const response = await fetch(
-            `/admin/menu`, //`${BASE_URL}/admin/menu`
+            `${API_BASE}/api/admin/menu`, //`${BASE_URL}/admin/menu`
             {
                 method: "POST",
 
@@ -273,7 +274,7 @@ export default function AdminMenu() {
         }
 
         const response = await fetch(
-            `/admin/menu/${editingItem.id}`,  //${BASE_URL}/admin/menu/${editingItem.id}
+            `${API_BASE}/api/admin/menu/${editingItem.id}`,  //${BASE_URL}/admin/menu/${editingItem.id}
             {
                 method: "PUT",
 
@@ -325,7 +326,7 @@ export default function AdminMenu() {
         ) {
 
             response = await fetch(
-                `/admin/menu/${confirmAction.id}`, //${BASE_URL}/admin/menu/${confirmAction.id}
+                `${API_BASE}/api/admin/menu/${confirmAction.id}`, //${BASE_URL}/admin/menu/${confirmAction.id}
                 {
                     method: "DELETE",
 
@@ -348,7 +349,7 @@ export default function AdminMenu() {
         ) {
 
             response = await fetch(
-                `/admin/menu/${confirmAction.id}/toggle`,  //${BASE_URL}/admin/menu/${confirmAction.id}/toggle
+                `${API_BASE}/api/admin/menu/${confirmAction.id}/toggle`,  //${BASE_URL}/admin/menu/${confirmAction.id}/toggle
                 {
                     method: "PATCH",
 
