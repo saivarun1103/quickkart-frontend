@@ -44,7 +44,7 @@ export default function OrdersPage() {
     const fetchOrders = () => {
 
         fetch(
-            `${API_BASE}/admin/orders?range=${dateFilter}`,
+            `${API_BASE}/api/admin/orders?range=${dateFilter}`,
             {
 
             headers: {
@@ -160,7 +160,7 @@ export default function OrdersPage() {
         );
 
         await fetch(
-            `${API_BASE}/admin/orders/${orderId}`,
+            `${API_BASE}/api/admin/orders/${orderId}`,
             {
                 method: "PATCH",
 
@@ -230,7 +230,7 @@ export default function OrdersPage() {
             setVerifying(true);
 
             const response = await fetch(
-                `${API_BASE}/admin/verify-pickup`,
+                `${API_BASE}/api/admin/verify-pickup`,
                 {
                     method: "POST",
 
