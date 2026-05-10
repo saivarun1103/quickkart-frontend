@@ -3,7 +3,7 @@ import Modal from "./Modal";
 import ImageCropModal from "./ImageCropModal";
 import TrashIcon from "./Fonts/TrashIcon";
 // const BASE_URL = ""; //https://quickkart-3f8h.onrender.com
-import { API_BASE } from "../config";
+import { API_BASE } from "../../config";
 
 export default function AdminMenu() {
 
