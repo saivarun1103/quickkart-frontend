@@ -26,7 +26,7 @@ export default function AnalyticsPage() {
             setLoading(true)
 
             const response = await fetch(
-                `${API_BASE}/admin/analytics?date=${selectedDate}`,
+                `${API_BASE}/api/admin/analytics?date=${selectedDate}`,
                 {
                     headers: {
                         Authorization:

@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import CategoryTabs from "../components/menu/CategoryTabs";
 // import DietaryFilter from "../components/menu/DietaryFilter";
 import ThemeToggle from "../components/ui/ThemeToggle";
+import { API_BASE } from "../../config";
 
 export default function CustomerMenu(){
   const [items, setItems] = useState([]);
@@ -59,7 +60,7 @@ export default function CustomerMenu(){
 
       if (!sessionToken) return;
 
-      fetch(`/api/session/${sessionToken}`)
+      fetch(`${API_BASE}/api/session/${sessionToken}`)
 
       .then(async (res) => {
 
@@ -106,7 +107,7 @@ export default function CustomerMenu(){
 
       if (!slug) return;
 
-      fetch(`/api/menu/${slug}`)
+      fetch(`${API_BASE}/api/menu/${slug}`)
 
       .then(res => res.json())
 
@@ -171,7 +172,7 @@ export default function CustomerMenu(){
 
       const response = await fetch(
 
-        "/api/checkout",
+        `${API_BASE}/api/checkout`,
 
         {
 
@@ -219,7 +220,7 @@ export default function CustomerMenu(){
 
       const response = await fetch(
 
-        `/api/check-customer/${sessionToken}`
+        `${API_BASE}/api/check-customer/${sessionToken}`
 
       )
 
@@ -255,7 +256,7 @@ export default function CustomerMenu(){
 
       await fetch(
 
-        "/api/save-customer-name",
+        `${API_BASE}/api/save-customer-name`,
 
         {
 
@@ -286,7 +287,7 @@ export default function CustomerMenu(){
     }
   }
 
-  if (!sessionExpired) {
+  if (sessionExpired) {
 
       return (
 
