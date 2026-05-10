@@ -1,1 +1,1 @@
-export const API_BASE = "https://quickkart-3f8h.onrender.com";
+export const API_BASE = import.meta.env.VITE_API_URL;
