@@ -1,0 +1,1 @@
+export const API_BASE = "https://quickkart-3f8h.onrender.com";
