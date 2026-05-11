@@ -138,7 +138,7 @@ export default function OrdersPage() {
         const interval =
             setInterval(
                 fetchOrders,
-                5000
+                15000
             );
 
         return () =>
