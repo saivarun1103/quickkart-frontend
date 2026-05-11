@@ -828,16 +828,15 @@ export default function OrdersPage() {
                                     mt-1
                                 ">
                                     {
-                                        new Date(
-                                            order.created_at
-                                        ).toLocaleString(
+                                        new Date(order.created_at).toLocaleString(
                                             "en-IN",
                                             {
                                                 timeZone: "Asia/Kolkata",
                                                 day: "numeric",
                                                 month: "short",
                                                 hour: "2-digit",
-                                                minute: "2-digit"
+                                                minute: "2-digit",
+                                                hour12: true
                                             }
                                         )
                                     }
