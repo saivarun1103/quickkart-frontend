@@ -833,6 +833,7 @@ export default function OrdersPage() {
                                         ).toLocaleString(
                                             "en-IN",
                                             {
+                                                timeZone: "Asia/Kolkata",
                                                 day: "numeric",
                                                 month: "short",
                                                 hour: "2-digit",
