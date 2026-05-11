@@ -828,7 +828,7 @@ export default function OrdersPage() {
                                     mt-1
                                 ">
                                     {
-                                        new Date(order.created_at).toLocaleString(
+                                        new Date(order.created_at+ "Z").toLocaleString(
                                             "en-IN",
                                             {
                                                 timeZone: "Asia/Kolkata",
