@@ -10,10 +10,9 @@ import OrdersPage from "./admin/pages/OrdersPage";
 import AnalyticsPage from "./admin/pages/AnalyticsPage";
 import SettingsPage from "./admin/pages/SettingsPage";
 import { Navigate } from "react-router-dom";
-import OrderSuccess from "./pages/OrderSuccess";
+import OrderSuccess from "./Pages/OrderSuccess";
 
-export default function App() {
-    
+export default function App() {  
   return (
     <Router>
       <Routes>
