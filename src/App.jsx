@@ -10,7 +10,7 @@ import OrdersPage from "./admin/pages/OrdersPage";
 import AnalyticsPage from "./admin/pages/AnalyticsPage";
 import SettingsPage from "./admin/pages/SettingsPage";
 import { Navigate } from "react-router-dom";
-
+import OrderSuccess from "./pages/OrderSuccess";
 
 export default function App() {
   return (
@@ -31,6 +31,12 @@ export default function App() {
         <Route
             path="/:slug"
             element={<CustomerMenu />}
+        />
+
+        {/* OrderSucceess Page */}
+        <Route
+            path="/order-success"
+            element={<OrderSuccess />}
         />
 
         {/* LOGIN */}
