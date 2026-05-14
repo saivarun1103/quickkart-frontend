@@ -295,7 +295,7 @@ export default function CustomerMenu(){
 
             window.location.href =
 
-              `/order-success?order_id=${data.order_id}&session=${sessionToken}`;
+              `/order-success?${sessionToken}${verifyData.order_id}`;
 
           } else {
 
