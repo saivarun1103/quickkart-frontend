@@ -225,6 +225,13 @@ export default function CustomerMenu(){
 
       const data = await response.json();
 
+      if (!response.ok) {
+
+        setSessionExpired(true);
+
+        return;
+      }
+
       // -------------------------
       // OPEN RAZORPAY
       // -------------------------
