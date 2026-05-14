@@ -30,7 +30,7 @@ export default function OrderSuccess() {
     
     
 
-    fetch(`${import.meta.env.VITE_API_URL}/public/order/${session}${orderId}`)
+    fetch(`${import.meta.env.VITE_API_URL}/public/order/${session}_${orderId}`)
       .then((res) => res.json())
       .then((data) => {
         setOrder(data.order);
