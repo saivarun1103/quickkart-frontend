@@ -163,6 +163,10 @@ export default function CustomerMenu(){
 
     try {
 
+      // -------------------------
+      // PREPARE ITEMS
+      // -------------------------
+
       const items = {};
 
       cart.forEach(item => {
@@ -170,41 +174,146 @@ export default function CustomerMenu(){
         items[item.name] = item.qty;
       });
 
+      // -------------------------
+      // CALCULATE TOTAL
+      // -------------------------
+
+      const total = cart.reduce(
+
+        (sum, item) =>
+
+          sum + item.price * item.qty,
+
+        0
+      );
+
+      // -------------------------
+      // CREATE RAZORPAY ORDER
+      // -------------------------
+
       const response = await fetch(
 
-        `${API_BASE}/api/checkout`,
+        `${API_BASE}/api/create-razorpay-order`, // change here
 
         {
 
           method: "POST",
 
           headers: {
+
             "Content-Type":
               "application/json"
           },
 
           body: JSON.stringify({
 
-            session_token: sessionToken,
+            session_token:
+              sessionToken,
 
-            items
+            items,
+
+            total,
+
+            business_id:
+              business.id,
+
+            customer_name:
+              customerName
           })
         }
       );
 
       const data = await response.json();
 
-      if (data.payment_url) {
+      // -------------------------
+      // OPEN RAZORPAY
+      // -------------------------
 
-        window.location.href =
-          data.payment_url;
+      const options = {
 
-      } else {
+        key: data.key,
 
-        alert(
-          "Failed to create payment"
-        );
-      }
+        amount: data.amount,
+
+        currency: "INR",
+
+        name: business.name,
+
+        description:
+          "Order Payment",
+
+        order_id:
+          data.razorpay_order_id,
+
+        handler: async function (
+          response
+        ) {
+
+          // -------------------------
+          // VERIFY PAYMENT
+          // -------------------------
+
+          const verifyRes = await fetch(
+
+            `${API_BASE}/api/verify-payment`, // change here to
+
+            {
+
+              method: "POST",
+
+              headers: {
+
+                "Content-Type":
+                  "application/json"
+              },
+
+              body: JSON.stringify({
+
+                order_id:
+                  data.order_id,
+
+                razorpay_order_id:
+                  response.razorpay_order_id,
+
+                razorpay_payment_id:
+                  response.razorpay_payment_id,
+
+                razorpay_signature:
+                  response.razorpay_signature
+              })
+            }
+          );
+
+          const verifyData =
+            await verifyRes.json();
+
+          // -------------------------
+          // SUCCESS REDIRECT
+          // -------------------------
+
+          if (verifyData.success) {
+
+            window.location.href =
+
+              `/order-success?order_id=${data.order_id}&session=${sessionToken}`;
+
+          } else {
+
+            alert("Payment verification failed");
+          }
+        },
+
+        theme: {
+
+          color: "#f97316"
+        }
+      };
+
+      const razorpay =
+
+        new window.Razorpay(options);
+
+      razorpay.open();
 
     } catch (err) {
 

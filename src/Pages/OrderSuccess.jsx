@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useLocation } from "react-router-dom";
 
 export default function OrderSuccess() {
   const [searchParams] = useSearchParams();
@@ -7,15 +7,29 @@ export default function OrderSuccess() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const location = useLocation();
+
   useEffect(() => {
-    const orderId = searchParams.get("order_id");
+    const raw = location.search.replace("?", "");
 
-    if (!orderId) {
-      setLoading(false);
-      return;
-    }
+    const orderIdMatch = raw.match(/\d+$/);
 
-    fetch(`${import.meta.env.VITE_API_URL}/public/order/${orderId}`)
+    const orderId = orderIdMatch
+        ? orderIdMatch[0]
+        : null;
+
+    const session = orderId
+        ? raw.replace(orderId, "")
+        : null;
+
+        if (!orderId) {
+          setLoading(false);
+          return;
+        }
+    
+    
+
+    fetch(`${import.meta.env.VITE_API_URL}/public/order/${session}${orderId}`)
       .then((res) => res.json())
       .then((data) => {
         setOrder(data.order);
@@ -38,9 +52,18 @@ export default function OrderSuccess() {
 
   if (!order) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-lg">
-        Order not found
-      </div>
+        <div
+            className="
+                min-h-screen
+                flex
+                items-center
+                justify-center
+                text-2xl
+                font-semibold
+            "
+        >
+            Unauthorized
+        </div>
     );
   }
 
