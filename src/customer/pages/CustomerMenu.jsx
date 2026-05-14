@@ -302,7 +302,7 @@ export default function CustomerMenu(){
 
             window.location.href =
 
-              `/order-success?${sessionToken}_${data.order_id}`;
+              `/order-success?${sessionToken}:::${data.order_id}`;
 
           } else {
 
