@@ -12,7 +12,7 @@ export default function OrderSuccess() {
   useEffect(() => {
     const raw = location.search.replace("?", "");
 
-    const parts = raw.split("_");
+    const parts = raw.split(":::");
 
     const session = parts[0];
 
@@ -30,7 +30,7 @@ export default function OrderSuccess() {
     
     
 
-    fetch(`${import.meta.env.VITE_API_URL}/public/order/${session}_${orderId}`)
+    fetch(`${import.meta.env.VITE_API_URL}/public/order/${session}:::${orderId}`)
       .then((res) => res.json())
       .then((data) => {
         setOrder(data.order);
