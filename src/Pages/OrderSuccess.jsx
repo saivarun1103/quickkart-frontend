@@ -12,15 +12,16 @@ export default function OrderSuccess() {
   useEffect(() => {
     const raw = location.search.replace("?", "");
 
-    const orderIdMatch = raw.match(/\d+$/);
+    const parts = raw.split("_");
 
-    const orderId = orderIdMatch
-        ? orderIdMatch[0]
-        : null;
+    const session = parts[0];
 
-    const session = orderId
-        ? raw.replace(orderId, "")
-        : null;
+    const orderId = parts[1];
+
+    if (!session || !orderId) {
+      setLoading(false);
+      return;
+    }
 
         if (!orderId) {
           setLoading(false);
