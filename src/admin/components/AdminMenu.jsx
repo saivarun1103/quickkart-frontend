@@ -4,8 +4,13 @@ import ImageCropModal from "./ImageCropModal";
 import TrashIcon from "./Fonts/TrashIcon";
 // const BASE_URL = ""; //https://quickkart-3f8h.onrender.com
 import { API_BASE } from "../../config";
+import { useOutletContext }
+from "react-router-dom";
 
 export default function AdminMenu() {
+    
+    const { search } =
+        useOutletContext();
 
     const [items, setItems] = useState([]);
 
@@ -60,7 +65,6 @@ export default function AdminMenu() {
         customCategory,
         setCustomCategory
     ] = useState(false);
-
 
 
     // 🔥 RESET FORM
@@ -166,6 +170,18 @@ export default function AdminMenu() {
         fetchItems();
 
     }, []);
+
+    const filteredItems = items.filter((item) => {
+
+        const query = search.toLowerCase();
+
+        return (
+            item.name?.toLowerCase().includes(query) ||
+            item.category?.toLowerCase().includes(query) ||
+            item.description?.toLowerCase().includes(query) ||
+            item.dietary_type?.toLowerCase().includes(query)
+        );
+    });
 
 
     // 🔥 ADD ITEM
@@ -537,8 +553,8 @@ export default function AdminMenu() {
                             "
                         >
 
-                            {Array.isArray(items) &&
-                                items.map(
+                            {Array.isArray(filteredItems) &&
+                                filteredItems.map(
                                     (item) => (
                                         <div
                                             key={item.id}

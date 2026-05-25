@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { API_BASE } from "../config";
 
 export default function Header({
-    toggleSidebar
+    toggleSidebar,
+    search,
+    setSearch
 }) {
 
     const navigate = useNavigate();
@@ -294,6 +296,12 @@ export default function Header({
 
                             <input
                                 type="text"
+
+                                value={search}
+
+                                onChange={(e) =>
+                                    setSearch(e.target.value)
+                                }
 
                                 placeholder="Search menu, orders, analytics..."
 
@@ -779,6 +787,12 @@ export default function Header({
 
                             <input
                                 type="text"
+
+                                value={search}
+
+                                onChange={(e) =>
+                                    setSearch(e.target.value)
+                                }
 
                                 placeholder="Search menu, orders, analytics..."
 

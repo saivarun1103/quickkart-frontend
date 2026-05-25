@@ -10,7 +10,8 @@ import OrdersPage from "./admin/pages/OrdersPage";
 import AnalyticsPage from "./admin/pages/AnalyticsPage";
 import SettingsPage from "./admin/pages/SettingsPage";
 import { Navigate } from "react-router-dom";
-import OrderSuccess from "./Pages/OrderSuccess";
+import OrderSuccess from "./customer/pages/OrderSuccess";
+import Discover from "./Pages/Discover";
 
 export default function App() {  
   return (
@@ -21,6 +22,12 @@ export default function App() {
             element={<Home />}
         /> */}
 
+        {/* DISCOVER PAGE */}
+        <Route
+            path="/discover"
+            element={<Discover />}
+        />
+
         {/* USER SESSION MENU */}
         <Route
             path="/:businessSlug/m/:sessionToken"
@@ -29,7 +36,7 @@ export default function App() {
 
         {/* USER MENU */}
         <Route
-            path="/:slug"
+            path="/:businessSlug"
             element={<CustomerMenu />}
         />
 

@@ -1,12 +1,17 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { API_BASE } from "../../config";
+import {
+    UilEye,
+    UilEyeSlash,
+} from "@iconscout/react-unicons";
 
 export default function Login() {
     const navigate = useNavigate();
 
     const [identifier, setIdentifier] = useState("");
     const [password, setPassword] = useState("");
+    const [show, setShow] = useState(false);
 
     useEffect(() => {
         const token =
@@ -85,15 +90,54 @@ export default function Login() {
                     style={inputStyle}
                 />
 
-                <input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) =>
-                        setPassword(e.target.value)
-                    }
-                    style={inputStyle}
-                />
+                <div
+                    style={{
+                        position: "relative",
+                        width: "100%",
+                        marginBottom: "16px",
+                    }}
+                >
+                    <input
+                        type={show ? "text" : "password"}
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) =>
+                            setPassword(e.target.value)
+                        }
+                        style={{
+                            ...inputStyle,
+                            marginBottom: 0,
+                            paddingRight: "50px",
+                        }}
+                    />
+
+                    <button
+                        type="button"
+                        onClick={() => setShow(!show)}
+                        style={{
+                            position: "absolute",
+                            right: "14px",
+                            top: "50%",
+                            transform: "translateY(-50%)",
+
+                            background: "transparent",
+                            border: "none",
+
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+
+                            cursor: "pointer",
+                            color: "#aaa",
+                        }}
+                    >
+                        {show ? (
+                            <UilEyeSlash size="20" />
+                        ) : (
+                            <UilEye size="20" />
+                        )}
+                    </button>
+                </div>
 
                 <button
                     onClick={handleLogin}

@@ -5,6 +5,14 @@ export default function CartDrawer({
   decreaseQty,
   checkout,
   onClose,
+
+  showPhonePopup,
+  phoneNumber,
+  setPhoneNumber,
+
+  continueWithPhone,
+  setShowPhonePopup,
+
   showNamePopup,
   customerName,
   setCustomerName,
@@ -270,6 +278,118 @@ export default function CartDrawer({
         </div>
 
       </div>
+      
+      {/* PHONE POPUP */}
+      {
+        showPhonePopup && (
+
+          <div
+            className="
+              fixed
+              inset-0
+              bg-black/50
+              z-[100]
+              flex
+              items-center
+              justify-center
+              p-6
+            "
+          >
+
+            <div
+              className="
+                bg-white
+                rounded-3xl
+                p-6
+                w-full
+                max-w-md
+              "
+            >
+
+              <h2
+                className="
+                  text-2xl
+                  font-black
+                  mb-2
+                "
+              >
+                Enter Phone Number
+              </h2>
+
+              <p
+                className="
+                  text-gray-500
+                  mb-5
+                "
+              >
+                We’ll use this to find
+                your account.
+              </p>
+
+              <input
+                type="tel"
+                value={phoneNumber}
+                onChange={(e) => {
+                  const value = e.target.value
+                    .replace(/\D/g, "") // numbers only
+                    .slice(0, 10) // max 10 digits
+                  setPhoneNumber(value)
+                }}
+                maxLength={10}
+                inputMode="numeric"
+                pattern="[6-9][0-9]{9}"
+                placeholder="9876543210"
+                className="
+                  w-full
+                  border
+                  rounded-2xl
+                  p-4
+                  outline-none
+                "
+              />
+
+              <div className="flex gap-3 mt-5">
+
+                <button
+                  onClick={() => {
+
+                    setPhoneNumber("")
+
+                    setShowPhonePopup(false)
+                  }}
+                  className="
+                    flex-1
+                    py-4
+                    rounded-2xl
+                    bg-gray-100
+                    font-bold
+                  "
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={continueWithPhone}
+                  className="
+                    flex-1
+                    py-4
+                    rounded-2xl
+                    bg-black
+                    text-white
+                    font-bold
+                  "
+                >
+                  Continue
+                </button>
+
+              </div>
+
+            </div>
+
+          </div>
+        )
+      }
+
       {/* NAME POPUP */}
       {
         showNamePopup && (

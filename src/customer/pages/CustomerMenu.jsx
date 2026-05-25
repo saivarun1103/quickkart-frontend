@@ -30,10 +30,25 @@ export default function CustomerMenu(){
   const [showNamePopup, setShowNamePopup] =
     useState(false)
 
+  const [showPhonePopup,
+    setShowPhonePopup] =
+    useState(false)
+
+  const [phoneNumber,
+    setPhoneNumber] =
+    useState("")
+
+  const [existingCustomer,
+    setExistingCustomer] =
+    useState(false)
+
   const [customerName, setCustomerName] =
     useState("")
   
   const [businessPhone, setBusinessPhone] =
+    useState("")
+
+  const [sessionPhone, setSessionPhone] =
     useState("")
 
   const [sessionExpired, setSessionExpired] =
@@ -58,65 +73,134 @@ export default function CustomerMenu(){
 
   useEffect(() => {
 
-      if (!sessionToken) return;
+      // -------------------------
+      // SESSION MENU
+      // -------------------------
 
-      fetch(`${API_BASE}/api/session/${sessionToken}`)
+      if (sessionToken) {
 
-      .then(async (res) => {
+          fetch(
+            `${API_BASE}/api/session/${sessionToken}`
+          )
 
-          console.log("SESSION STATUS:", res.status)
+          .then(async (res) => {
 
-          if (!res.ok) {
+              console.log(
+                "SESSION STATUS:",
+                res.status
+              )
 
-              const text = await res.text()
+              if (!res.ok) {
 
-              console.log("SESSION ERROR:", text)
+                  const text =
+                    await res.text()
+
+                  console.log(
+                    "SESSION ERROR:",
+                    text
+                  )
+
+                  setSessionExpired(true)
+
+                  return null
+              }
+
+              return res.json()
+          })
+
+          .then((data) => {
+
+              if (!data) return
+
+              setSlug(
+                data.business_slug
+              )
+
+              setBusinessPhone(
+                data.business_phone
+              )
+
+              setSessionPhone(
+                data.customer_phone
+              )
+          })
+
+          .catch((err) => {
+
+              console.error(
+                "SESSION FETCH ERROR:",
+                err
+              )
 
               setSessionExpired(true)
+          })
+      }
 
-              return null
-          }
+      // -------------------------
+      // PUBLIC MENU
+      // -------------------------
 
-          return res.json()
-      })
+      else if (businessSlug) {
 
-      .then((data) => {
+          setSlug(businessSlug)
+      }
 
-          console.log("SESSION DATA:", data)
-
-          if (!data) return
-
-          setSlug(data.business_slug)
-
-          setBusinessPhone(data.business_phone)
-      })
-
-      .catch((err) => {
-
-          console.error("SESSION FETCH ERROR:", err)
-
-          setSessionExpired(true)
-      })
-
-  }, [sessionToken]);
+  }, [sessionToken, businessSlug])
     
   
 
   // Fetch menu from backend
   useEffect(() => {
 
+      console.log("SLUG:", slug)
+
       if (!slug) return;
 
-      fetch(`${API_BASE}/api/menu/${slug}`)
+      console.log(
+        "FETCHING MENU:",
+        slug
+      )
 
-      .then(res => res.json())
+      fetch(
+        `${API_BASE}/api/menu/${slug}`
+      )
+
+      .then(async res => {
+
+          console.log(
+            "MENU STATUS:",
+            res.status
+          )
+
+          const data =
+            await res.json()
+
+          console.log(
+            "MENU DATA:",
+            data
+          )
+
+          return data
+      })
 
       .then(data => {
 
-          setBusiness(data.business);
+          setBusiness(
+            data.business
+          )
 
-          setItems(data.items);
-      });
+          setItems(
+            data.items
+          )
+      })
+
+      .catch(err => {
+
+          console.error(
+            "MENU ERROR:",
+            err
+          )
+      })
 
   }, [slug]);
 
@@ -207,18 +291,32 @@ export default function CustomerMenu(){
 
           body: JSON.stringify({
 
-            session_token:
-              sessionToken,
+            // SESSION FLOW
+            ...(sessionToken && {
+
+              session_token:
+                sessionToken
+            }),
+
+            // PUBLIC FLOW
+            ...(!sessionToken && {
+
+              business_slug:
+                businessSlug,
+
+              phone:
+                phoneNumber,
+
+              customer_name:
+                customerName || null
+            }),
 
             items,
 
             total,
 
             business_id:
-              business.id,
-
-            customer_name:
-              customerName
+              business.id
           })
         }
       );
@@ -251,6 +349,19 @@ export default function CustomerMenu(){
 
         order_id:
           data.razorpay_order_id,
+
+        prefill: {
+
+          contact:
+            sessionToken
+              ? sessionPhone
+              : phoneNumber
+        },
+
+        readonly: {
+
+          contact: true
+        },
 
         handler: async function (
           response
@@ -301,8 +412,7 @@ export default function CustomerMenu(){
           if (verifyData.success) {
 
             window.location.href =
-
-              `/order-success?${sessionToken}:::${data.order_id}`;
+            `/order-success?${verifyData.access_token}`;
 
           } else {
 
@@ -330,77 +440,195 @@ export default function CustomerMenu(){
     }
   }
 
-  const handleCheckoutClick = async () => {
+  const handleCheckoutClick =
+    async () => {
 
-    try {
+      // -------------------------
+      // SESSION FLOW
+      // -------------------------
 
-      const response = await fetch(
+      if (sessionToken) {
 
-        `${API_BASE}/api/check-customer/${sessionToken}`
+        try {
 
-      )
+          const response =
+            await fetch(
+              `${API_BASE}/api/check-customer/${sessionToken}`
+          )
 
-      const data = await response.json()
+          const data =
+            await response.json()
 
-      if (data.has_name) {
+          if (data.has_name) {
+
+            checkout()
+
+          } else {
+
+            setShowNamePopup(true)
+          }
+
+        } catch (error) {
+
+          console.error(error)
+
+          alert(
+            "Something went wrong"
+          )
+        }
+
+        return
+      }
+
+      // -------------------------
+      // PUBLIC FLOW
+      // -------------------------
+
+      console.log("PUBLIC CHECKOUT CLICKED")
+      setShowPhonePopup(true)
+  }
+
+  const continueWithPhone =
+    async () => {
+
+      if (!/^[6-9]\d{9}$/.test(phoneNumber)) {
+
+        alert(
+          "Enter a valid 10-digit mobile number"
+        )
+
+        return
+      }
+
+      try {
+
+        const response =
+          await fetch(
+
+          `${API_BASE}/api/check-phone`,
+
+          {
+
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+
+            body: JSON.stringify({
+              phone: phoneNumber
+            })
+          }
+        )
+
+        const data =
+          await response.json()
+
+        // -------------------------
+        // EXISTING USER
+        // -------------------------
+
+        if (data.exists) {
+
+          setExistingCustomer(true)
+
+          setShowPhonePopup(false)
+
+          checkout()
+
+        }
+
+        // -------------------------
+        // NEW USER
+        // -------------------------
+
+        else {
+
+          setExistingCustomer(false)
+
+          setShowPhonePopup(false)
+
+          setShowNamePopup(true)
+        }
+
+      } catch (error) {
+
+        console.error(error)
+
+        alert(
+          "Failed to verify phone"
+        )
+      }
+  }
+
+  const saveNameAndCheckout =
+    async () => {
+
+      if (!customerName.trim()) {
+
+        alert(
+          "Please enter your name"
+        )
+
+        return
+      }
+
+      // -------------------------
+      // PUBLIC FLOW
+      // -------------------------
+
+      if (!sessionToken) {
+
+        setShowNamePopup(false)
 
         checkout()
 
-      } else {
-
-        setShowNamePopup(true)
+        return
       }
 
-    } catch (error) {
+      // -------------------------
+      // SESSION FLOW
+      // -------------------------
 
-      console.error(error)
+      try {
 
-      alert("Something went wrong")
-    }
-  }
+        await fetch(
 
-  const saveNameAndCheckout = async () => {
+          `${API_BASE}/api/save-customer-name`,
 
-    if (!customerName.trim()) {
+          {
 
-      alert("Please enter your name")
+            method: "POST",
 
-      return
-    }
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
 
-    try {
+            body: JSON.stringify({
 
-      await fetch(
+              session_token:
+                sessionToken,
 
-        `${API_BASE}/api/save-customer-name`,
+              customer_name:
+                customerName
+            })
+          }
+        )
 
-        {
+        setShowNamePopup(false)
 
-          method: "POST",
+        checkout()
 
-          headers: {
-            "Content-Type": "application/json"
-          },
+      } catch (error) {
 
-          body: JSON.stringify({
+        console.error(error)
 
-            session_token: sessionToken,
-
-            customer_name: customerName
-          })
-        }
-      )
-
-      setShowNamePopup(false)
-
-      checkout()
-
-    } catch (error) {
-
-      console.error(error)
-
-      alert("Failed to save name")
-    }
+        alert(
+          "Failed to save name"
+        )
+      }
   }
 
   if (sessionExpired) {
@@ -574,6 +802,17 @@ export default function CustomerMenu(){
                     decreaseQty={decreaseQty}
                     checkout={handleCheckoutClick}
                     onClose={() => setIsCartOpen(false)}
+
+                    showPhonePopup={showPhonePopup}
+                    phoneNumber={phoneNumber}
+                    setPhoneNumber={setPhoneNumber}
+
+                    continueWithPhone=
+                      {continueWithPhone}
+
+                    setShowPhonePopup=
+                      {setShowPhonePopup}
+
                     showNamePopup={showNamePopup}
                     customerName={customerName}
                     setCustomerName={setCustomerName}

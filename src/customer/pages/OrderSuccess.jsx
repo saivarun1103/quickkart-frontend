@@ -10,27 +10,21 @@ export default function OrderSuccess() {
   const location = useLocation();
 
   useEffect(() => {
-    const raw = location.search.replace("?", "");
+    const token = location.search.replace(
+      "?",
+      ""
+    );
 
-    const parts = raw.split(":::");
+    if (!token) {
 
-    const session = parts[0];
-
-    const orderId = parts[1];
-
-    if (!session || !orderId) {
       setLoading(false);
+
       return;
     }
-
-        if (!orderId) {
-          setLoading(false);
-          return;
-        }
     
-    
-
-    fetch(`${import.meta.env.VITE_API_URL}/public/order/${session}:::${orderId}`)
+    fetch(
+    `${import.meta.env.VITE_API_URL}/public/order/${token}`
+    )
       .then((res) => res.json())
       .then((data) => {
         setOrder(data.order);

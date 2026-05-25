@@ -11,6 +11,8 @@ export default function AdminLayout() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [business, setBusiness] =
     useState(null);
+    const [search, setSearch] =
+    useState("");
 
     useEffect(() => {
 
@@ -164,6 +166,8 @@ export default function AdminLayout() {
                     toggleSidebar={() =>
                         setSidebarOpen(!sidebarOpen)
                     }
+                    search={search}
+                    setSearch={setSearch}
                 />
 
                 {/* PAGE CONTENT */}
@@ -176,7 +180,11 @@ export default function AdminLayout() {
                         md:px-8
                     "
                 >
-                    <Outlet />
+                    <Outlet 
+                        context={{
+                            search
+                        }}
+                    />
                 </div>
             </div>
         </div>
