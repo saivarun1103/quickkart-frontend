@@ -8,7 +8,7 @@ import { useOutletContext }
 from "react-router-dom";
 
 export default function AdminMenu() {
-    
+
     const { search } =
         useOutletContext();
 
@@ -739,8 +739,8 @@ export default function AdminMenu() {
                                                         "
                                                     >
                                                         {item.available
-                                                            ? "Disable"
-                                                            : "Enable"}
+                                                            ? "Out of Stock"
+                                                            : "In Stock"}
                                                     </button>
 
                                                     <button

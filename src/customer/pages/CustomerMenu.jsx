@@ -16,6 +16,10 @@ export default function CustomerMenu(){
   const { businessSlug, sessionToken } =
   useParams();
   const [business, setBusiness] = useState(null);
+  const [
+    businessStatus,
+    setBusinessStatus
+  ] = useState("open");
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [activeCategory, setActiveCategory] = 
   useState("All");
@@ -53,6 +57,13 @@ export default function CustomerMenu(){
 
   const [sessionExpired, setSessionExpired] =
     useState(false)
+
+  const isBusinessOpen =
+    businessStatus === "open";
+
+  const isMaintenance =
+    businessStatus ===
+    "maintenance";
 //   const [dietaryFilter, setDietaryFilter] =
 //     useState("All");
   const filteredItems = items.filter((item) => {
@@ -187,6 +198,14 @@ export default function CustomerMenu(){
 
           setBusiness(
             data.business
+          )
+          console.log(
+            "BUSINESS:",
+            data.business
+          );
+
+          setBusinessStatus(
+            data.business.status
           )
 
           setItems(
@@ -736,12 +755,164 @@ export default function CustomerMenu(){
           </div>
       )
   }
+
+  if (isMaintenance) {
+
+    return (
+
+      <div className="
+        min-h-screen
+
+        bg-gray-100
+        dark:bg-black
+      ">
+
+        <ThemeToggle />
+
+        <div className="
+          max-w-7xl
+          mx-auto
+          p-5
+        ">
+
+          <BusinessHeader
+            business={business}
+          />
+
+          <div
+            className="
+              mt-8
+
+              rounded-[2rem]
+
+              border
+              border-yellow-500/20
+
+              bg-yellow-500/10
+
+              px-8
+              py-16
+
+              text-center
+            "
+          >
+
+            <div className="
+              text-6xl
+              mb-5
+            ">
+              🛠️
+            </div>
+
+            <h1
+              className="
+                text-4xl
+                font-bold
+
+                text-yellow-500
+              "
+            >
+              Under Maintenance
+            </h1>
+
+            <p
+              className="
+                text-zinc-500
+
+                mt-4
+
+                text-lg
+
+                max-w-md
+                mx-auto
+              "
+            >
+              We're updating our
+              menu right now.
+
+              Please check back
+              shortly.
+            </p>
+
+          </div>
+
+        </div>
+
+      </div>
+    );
+  }
  
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-black">
         <ThemeToggle  />
         <div className="max-w-7xl mx-auto p-5 pb-40">   
             <BusinessHeader business={business} />
+            {
+              !isBusinessOpen && (
+
+                <div
+                  className="
+                    mt-6
+                    mb-6
+
+                    rounded-3xl
+
+                    border
+                    border-orange-300/30
+
+                    bg-orange-500/10
+
+                    px-6
+                    py-5
+
+                    flex
+                    items-center
+                    gap-4
+                  "
+                >
+
+                  <div
+                    className="
+                      w-3
+                      h-3
+
+                      rounded-full
+
+                      bg-orange-500
+
+                      animate-pulse
+                    "
+                  />
+
+                  <div>
+
+                    <h2
+                      className="
+                        text-lg
+                        font-bold
+
+                        text-orange-500
+                      "
+                    >
+                      Business Closed
+                    </h2>
+
+                    <p
+                      className="
+                        text-zinc-500
+                        mt-1
+                      "
+                    >
+                      We are currently not
+                      accepting orders and
+                      will open shortly.
+                    </p>
+
+                  </div>
+
+                </div>
+              )
+            }
             <CategoryTabs
                 categories={categories}
                 activeCategory={activeCategory}
@@ -791,36 +962,53 @@ export default function CustomerMenu(){
                     mt-8
                 "
             >
-                <FloatingCart
-                    cart={cart}
-                    checkout={() => setIsCartOpen(true)}
-                />
-                <CartDrawer
-                    isOpen={isCartOpen}
-                    cart={cart}
-                    increaseQty={increaseQty}
-                    decreaseQty={decreaseQty}
-                    checkout={handleCheckoutClick}
-                    onClose={() => setIsCartOpen(false)}
+                {
+                  isBusinessOpen && (
 
-                    showPhonePopup={showPhonePopup}
-                    phoneNumber={phoneNumber}
-                    setPhoneNumber={setPhoneNumber}
+                    <FloatingCart
+                      cart={cart}
+                      checkout={() =>
+                        setIsCartOpen(true)
+                      }
+                    />
+                  )
+                }
+                {
+                  isBusinessOpen && (
 
-                    continueWithPhone=
-                      {continueWithPhone}
+                    <CartDrawer
+                      isOpen={isCartOpen}
+                      cart={cart}
+                      increaseQty={increaseQty}
+                      decreaseQty={decreaseQty}
+                      checkout={handleCheckoutClick}
+                      onClose={() =>
+                        setIsCartOpen(false)
+                      }
 
-                    setShowPhonePopup=
-                      {setShowPhonePopup}
+                      showPhonePopup={showPhonePopup}
+                      phoneNumber={phoneNumber}
+                      setPhoneNumber={setPhoneNumber}
 
-                    showNamePopup={showNamePopup}
-                    customerName={customerName}
-                    setCustomerName={setCustomerName}
-                    saveNameAndCheckout={saveNameAndCheckout}
-                    closeNamePopup={() =>
-                      setShowNamePopup(false)
-                    }
-                />
+                      continueWithPhone=
+                        {continueWithPhone}
+
+                      setShowPhonePopup=
+                        {setShowPhonePopup}
+
+                      showNamePopup={showNamePopup}
+                      customerName={customerName}
+                      setCustomerName={setCustomerName}
+                      saveNameAndCheckout={
+                        saveNameAndCheckout
+                      }
+
+                      closeNamePopup={() =>
+                        setShowNamePopup(false)
+                      }
+                    />
+                  )
+                }
                 {[...filteredItems]
 
                 .sort((a, b) => {
@@ -839,13 +1027,33 @@ export default function CustomerMenu(){
 
                     return (
                     <FoodCard
-                        key={item.id}
-                        item={item}
-                        cartItem={cartItem}
-                        addToCart={addToCart}
-                        increaseQty={increaseQty}
-                        decreaseQty={decreaseQty}
-                        index={index}
+                      key={item.id}
+                      item={item}
+                      cartItem={cartItem}
+
+                      addToCart={
+                        isBusinessOpen
+                          ? addToCart
+                          : () => {}
+                      }
+
+                      increaseQty={
+                        isBusinessOpen
+                          ? increaseQty
+                          : () => {}
+                      }
+
+                      decreaseQty={
+                        isBusinessOpen
+                          ? decreaseQty
+                          : () => {}
+                      }
+
+                      businessClosed={
+                        !isBusinessOpen
+                      }
+
+                      index={index}
                     />
                     );
                 })}
