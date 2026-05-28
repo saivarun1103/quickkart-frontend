@@ -6,6 +6,7 @@ export default function FoodCard({
   addToCart,
   increaseQty,
   decreaseQty,
+  businessClosed,
   index
 }) {
   return (
@@ -142,9 +143,46 @@ export default function FoodCard({
         {/* BUTTON SECTION */}
         <div className="mt-auto pt-5">
 
-          {item.available ? (
+          {
+            !item.available ? (
 
-            cartItem ? (
+              <button
+                disabled
+                className="
+                  w-full
+                  py-3
+                  rounded-2xl
+                  bg-gray-300
+                  text-gray-600
+                  font-semibold
+                  cursor-not-allowed
+                "
+              >
+                Currently Unavailable
+              </button>
+
+            ) : businessClosed ? (
+
+              <div
+                className="
+                  w-full
+                  py-3
+
+                  rounded-2xl
+
+                  bg-zinc-800
+                  text-zinc-400
+
+                  font-semibold
+                  text-center
+
+                  cursor-not-allowed
+                "
+              >
+                Business Closed
+              </div>
+
+            ) : cartItem ? (
 
               <div
                 className="
@@ -158,7 +196,10 @@ export default function FoodCard({
               >
 
                 <button
-                  onClick={() => decreaseQty(item.id)}
+                  onClick={() =>
+                    decreaseQty(item.id)
+                  }
+
                   className="
                     w-10
                     h-10
@@ -186,7 +227,10 @@ export default function FoodCard({
                 </span>
 
                 <button
-                  onClick={() => increaseQty(item.id)}
+                  onClick={() =>
+                    increaseQty(item.id)
+                  }
+
                   className="
                     w-10
                     h-10
@@ -209,7 +253,10 @@ export default function FoodCard({
             ) : (
 
               <button
-                onClick={() => addToCart(item)}
+                onClick={() =>
+                  addToCart(item)
+                }
+
                 className="
                   w-full
                   py-3
@@ -226,27 +273,8 @@ export default function FoodCard({
               >
                 Add to Cart
               </button>
-
             )
-
-          ) : (
-
-            <button
-              disabled
-              className="
-                w-full
-                py-3
-                rounded-2xl
-                bg-gray-300
-                text-gray-600
-                font-semibold
-                cursor-not-allowed
-              "
-            >
-              Currently Unavailable
-            </button>
-
-          )}
+          }
 
         </div>
 

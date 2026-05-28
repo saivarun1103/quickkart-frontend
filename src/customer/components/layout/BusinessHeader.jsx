@@ -22,7 +22,10 @@ export default function BusinessHeader({ business }) {
 
       {/* BACKGROUND IMAGE */}
       <img
-        src="https://images.unsplash.com/photo-1504674900247-0877df9cc836"
+        src={
+          business?.banner_url ||
+          "https://images.unsplash.com/photo-1504674900247-0877df9cc836"
+        }
         alt="Restaurant Banner"
         className="
           absolute

@@ -3,10 +3,16 @@ import {
     useRef,
     useState
 } from "react";
+import {
+    useOutletContext
+} from "react-router-dom";
 import newOrderSound from "../../assets/new_order.ogg";
 import { API_BASE } from "../../config";
 
 export default function OrdersPage() {
+
+    const { search } =
+        useOutletContext();
 
     const [orders, setOrders] =
         useState([]);
@@ -34,6 +40,11 @@ export default function OrdersPage() {
 
     const [confirmModal, setConfirmModal] =
         useState(null);
+
+    const [
+        pickupVerificationEnabled,
+        setPickupVerificationEnabled
+    ] = useState(true);
 
     const audioRef = useRef(
         new Audio(newOrderSound)
@@ -129,11 +140,48 @@ export default function OrdersPage() {
             });
     };
 
+    const fetchSettings = async () => {
+
+        try {
+
+            const response =
+                await fetch(
+                    `${API_BASE}/business/settings`,
+                    {
+                        headers: {
+                            Authorization:
+                                `Bearer ${
+                                    localStorage.getItem(
+                                        "token"
+                                    )
+                                }`
+                        }
+                    }
+                );
+
+            const data =
+                await response.json();
+
+            setPickupVerificationEnabled(
+                data.pickup_verification_enabled
+            );
+
+        } catch (err) {
+
+            console.error(
+                "SETTINGS FETCH ERROR",
+                err
+            );
+        }
+    };
+
     useEffect(() => {
 
         previousOrderIds.current = []
 
         fetchOrders();
+
+        fetchSettings();
 
         const interval =
             setInterval(
@@ -369,14 +417,45 @@ export default function OrdersPage() {
 
     const filteredOrders =
 
-        activeFilter === "all"
+        orders.filter((order) => {
 
-            ? orders
+            const matchesStatus =
 
-            : orders.filter(
-                (order) =>
-                    order.status === activeFilter
+                activeFilter === "all"
+
+                    ? true
+
+                    : order.status ===
+                    activeFilter;
+
+            const query =
+                search
+                    ?.toLowerCase()
+                    .trim() || "";
+
+            const matchesSearch =
+
+                !query ||
+
+                order.customer_name
+                    ?.toLowerCase()
+                    .includes(query) ||
+
+                order.phone
+                    ?.includes(query) ||
+
+                String(order.id)
+                    .padStart(4, "0")
+                    .includes(query) ||
+
+                String(order.id)
+                    .includes(query);
+
+            return (
+                matchesStatus &&
+                matchesSearch
             );
+        });
 
     return (
 
@@ -407,213 +486,218 @@ export default function OrdersPage() {
 
             {/* PICKUP VERIFICATION */}
 
-            <div className="
-                bg-zinc-900
-
-                border
-                border-zinc-800
-
-                rounded-3xl
-
-                p-5
-
-                mb-8
-            ">
-
-                <h2 className="
-                    text-xl
-                    font-semibold
-
-                    mb-4
-                ">
-                    Pickup Verification
-                </h2>
+            {
+                pickupVerificationEnabled && (
 
                 <div className="
-                    flex
-                    flex-col
-                    md:flex-row
+                    bg-zinc-900
 
-                    gap-4
+                    border
+                    border-zinc-800
+
+                    rounded-3xl
+
+                    p-5
+
+                    mb-8
                 ">
 
-                    <input
-                        type="text"
+                    <h2 className="
+                        text-xl
+                        font-semibold
 
-                        placeholder="Enter Pickup PIN"
-
-                        value={pickupPin}
-
-                        onChange={(e) =>
-                            setPickupPin(
-                                e.target.value
-                            )
-                        }
-
-                        className="
-                            flex-1
-
-                            bg-zinc-800
-
-                            border
-                            border-zinc-700
-
-                            rounded-2xl
-
-                            px-4
-                            py-3
-
-                            outline-none
-
-                            focus:border-blue-500
-                        "
-                    />
-
-                    <button
-                        onClick={verifyPickup}
-
-                        disabled={verifying}
-
-                        className="
-                            bg-blue-600
-                            hover:bg-blue-700
-
-                            disabled:opacity-50
-
-                            px-6
-                            py-3
-
-                            rounded-2xl
-
-                            font-medium
-
-                            transition
-
-                            cursor-pointer
-                        "
-                    >
-                        {
-                            verifying
-                                ? "Verifying..."
-                                : "Verify Pickup"
-                        }
-                    </button>
-
-                </div>
-
-                {verifiedOrder && (
+                        mb-4
+                    ">
+                        Pickup Verification
+                    </h2>
 
                     <div className="
-                        mt-5
+                        flex
+                        flex-col
+                        md:flex-row
 
-                        bg-green-500/10
-
-                        border
-                        border-green-500/20
-
-                        rounded-2xl
-
-                        p-4
+                        gap-4
                     ">
 
-                        <div className="
-                            flex
-                            items-start
-                            justify-between
-                        ">
+                        <input
+                            type="text"
 
-                            <p className="
-                                text-green-400
-                                font-semibold
-                            ">
-                                Order Completed Successfully
-                            </p>
+                            placeholder="Enter Pickup PIN"
 
-                            <button
-                                onClick={() =>
-                                    setVerifiedOrder(null)
-                                }
+                            value={pickupPin}
 
-                                className="
-                                    text-zinc-500
-                                    hover:text-white
-
-                                    text-sm
-
-                                    transition
-
-                                    cursor-pointer
-                                "
-                            >
-                                Dismiss
-                            </button>
-
-                        </div>
-
-                        <p className="
-                            text-zinc-300
-                            mt-2
-                        ">
-                            Order #
-                            {
-                                String(
-                                    verifiedOrder.id
-                                ).padStart(
-                                    4,
-                                    "0"
+                            onChange={(e) =>
+                                setPickupPin(
+                                    e.target.value
                                 )
                             }
-                        </p>
 
-                        <p className="
-                            text-zinc-400
-                        ">
+                            className="
+                                flex-1
+
+                                bg-zinc-800
+
+                                border
+                                border-zinc-700
+
+                                rounded-2xl
+
+                                px-4
+                                py-3
+
+                                outline-none
+
+                                focus:border-blue-500
+                            "
+                        />
+
+                        <button
+                            onClick={verifyPickup}
+
+                            disabled={verifying}
+
+                            className="
+                                bg-blue-600
+                                hover:bg-blue-700
+
+                                disabled:opacity-50
+
+                                px-6
+                                py-3
+
+                                rounded-2xl
+
+                                font-medium
+
+                                transition
+
+                                cursor-pointer
+                            "
+                        >
                             {
-                                verifiedOrder.customer_name
+                                verifying
+                                    ? "Verifying..."
+                                    : "Verify Pickup"
                             }
-                        </p>
-                        <div className="
-                            mt-4
-                            space-y-1
-                        ">
-
-                            {Object.entries(
-                                verifiedOrder.items || {}
-                            )
-                                .slice(0,3)
-                                .map(
-                                    ([name, qty], index) => (
-
-                                        <p
-                                            key={index}
-
-                                            className="
-                                                text-zinc-300
-                                                text-sm
-                                            "
-                                        >
-                                            {qty} × {name}
-                                        </p>
-                                    )
-                            )}
-                            {Object.keys(
-                                verifiedOrder.items || {}
-                            ).length > 3 && (
-
-                                <p className="
-                                    text-zinc-500
-                                    text-sm
-                                ">
-                                    ...
-                                </p>
-                            )}
-
-                        </div>
+                        </button>
 
                     </div>
-                )}
 
-            </div>
+                    {verifiedOrder && (
+
+                        <div className="
+                            mt-5
+
+                            bg-green-500/10
+
+                            border
+                            border-green-500/20
+
+                            rounded-2xl
+
+                            p-4
+                        ">
+
+                            <div className="
+                                flex
+                                items-start
+                                justify-between
+                            ">
+
+                                <p className="
+                                    text-green-400
+                                    font-semibold
+                                ">
+                                    Order Completed Successfully
+                                </p>
+
+                                <button
+                                    onClick={() =>
+                                        setVerifiedOrder(null)
+                                    }
+
+                                    className="
+                                        text-zinc-500
+                                        hover:text-white
+
+                                        text-sm
+
+                                        transition
+
+                                        cursor-pointer
+                                    "
+                                >
+                                    Dismiss
+                                </button>
+
+                            </div>
+
+                            <p className="
+                                text-zinc-300
+                                mt-2
+                            ">
+                                Order #
+                                {
+                                    String(
+                                        verifiedOrder.id
+                                    ).padStart(
+                                        4,
+                                        "0"
+                                    )
+                                }
+                            </p>
+
+                            <p className="
+                                text-zinc-400
+                            ">
+                                {
+                                    verifiedOrder.customer_name
+                                }
+                            </p>
+                            <div className="
+                                mt-4
+                                space-y-1
+                            ">
+
+                                {Object.entries(
+                                    verifiedOrder.items || {}
+                                )
+                                    .slice(0,3)
+                                    .map(
+                                        ([name, qty], index) => (
+
+                                            <p
+                                                key={index}
+
+                                                className="
+                                                    text-zinc-300
+                                                    text-sm
+                                                "
+                                            >
+                                                {qty} × {name}
+                                            </p>
+                                        )
+                                )}
+                                {Object.keys(
+                                    verifiedOrder.items || {}
+                                ).length > 3 && (
+
+                                    <p className="
+                                        text-zinc-500
+                                        text-sm
+                                    ">
+                                        ...
+                                    </p>
+                                )}
+
+                            </div>
+
+                        </div>
+                    )}
+
+                </div>
+                )
+            }
 
             {/* FILTER HEADER */}
 
@@ -774,6 +858,10 @@ export default function OrdersPage() {
 
                         className="
                             relative
+
+                            flex
+                            flex-col
+                            justify-between
 
                             bg-zinc-900
 
@@ -1004,16 +1092,62 @@ export default function OrdersPage() {
                                 </button>
                             )}
 
-                            {(order.status === "ready" ||
-                                order.status === "completed") && (
+                            {
+                                !pickupVerificationEnabled &&
+                                order.status !== "completed" && (
 
-                                <div className="
-                                    text-sm
-                                    text-zinc-500
-                                ">
-                                    Status Locked
-                                </div>
-                            )}
+                                    <button
+                                        onClick={(e) => {
+
+                                            e.stopPropagation();
+
+                                            setConfirmModal({
+                                                orderId: order.id,
+                                                status: "completed"
+                                            });
+                                        }}
+
+                                        className="
+                                            ml-auto
+
+                                            bg-green-600
+                                            hover:bg-green-700
+
+                                            text-white
+
+                                            px-4
+                                            py-2
+
+                                            rounded-xl
+
+                                            text-sm
+                                            font-medium
+
+                                            transition
+
+                                            cursor-pointer
+                                        "
+                                    >
+                                        Pickup Complete
+                                    </button>
+                                )
+                            }
+
+                            {
+                                pickupVerificationEnabled &&
+                                (
+                                    order.status === "ready" ||
+                                    order.status === "completed"
+                                ) && (
+
+                                    <div className="
+                                        text-sm
+                                        text-zinc-500
+                                    ">
+                                        Status Locked
+                                    </div>
+                                )
+                            }
 
                         </div>
 
@@ -1238,11 +1372,16 @@ export default function OrdersPage() {
                                 mt-3
                             ">
 
-                                {confirmModal.status === "ready"
+                                {
+                                    confirmModal.status === "ready"
 
-                                    ? "Mark this order as READY TO PICK? This action cannot be changed."
+                                        ? "Mark this order as READY TO PICK? This action cannot be changed."
 
-                                    : "Start preparing this order?"
+                                        : confirmModal.status === "completed"
+
+                                        ? "Complete pickup for this order?"
+
+                                        : "Start preparing this order?"
                                 }
 
                             </p>
