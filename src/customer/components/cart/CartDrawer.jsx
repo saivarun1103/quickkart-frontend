@@ -3,7 +3,11 @@ export default function CartDrawer({
   cart,
   increaseQty,
   decreaseQty,
+  removeFromCart,
   checkout,
+
+  isCheckoutLoading,
+  
   onClose,
 
   showPhonePopup,
@@ -159,55 +163,142 @@ export default function CartDrawer({
                     ₹{item.price} each
                   </p>
 
+                  {
+                    item.unavailable && (
+
+                      <div
+                        className="
+                          mt-2
+                          inline-flex
+                          items-center
+
+                          rounded-full
+
+                          bg-red-100
+                          text-red-600
+
+                          px-3
+                          py-1
+
+                          text-xs
+                          font-semibold
+                        "
+                      >
+                        Out of stock
+                      </div>
+                    )
+                  }
+
                 </div>
 
                 {/* RIGHT */}
                 <div
                   className="
                     flex
-                    items-center
-                    gap-3
+                    flex-col
+                    items-end
+                    gap-2
                   "
                 >
 
-                  <button
-                    onClick={() => decreaseQty(item.id)}
+                  {/* QTY CONTROLS */}
+                  <div
                     className="
-                      w-10
-                      h-10
-                      rounded-xl
-                      bg-white
-                      shadow-sm
-                      font-bold
+                      flex
+                      items-center
+                      gap-3
                     "
                   >
-                    -
-                  </button>
 
-                  <span
-                    className="
-                      text-lg
-                      font-bold
-                      w-6
-                      text-center
-                    "
-                  >
-                    {item.qty}
-                  </span>
+                    <button
+                      onClick={() =>
+                        decreaseQty(item.id)
+                      }
 
-                  <button
-                    onClick={() => increaseQty(item.id)}
-                    className="
-                      w-10
-                      h-10
-                      rounded-xl
-                      bg-orange-500
-                      text-white
-                      font-bold
-                    "
-                  >
-                    +
-                  </button>
+                      disabled={item.unavailable}
+
+                      className="
+                        w-10
+                        h-10
+                        rounded-xl
+                        bg-white
+                        shadow-sm
+                        font-bold
+
+                        disabled:opacity-50
+                        disabled:cursor-not-allowed
+                      "
+                    >
+                      -
+                    </button>
+
+                    <span
+                      className="
+                        text-lg
+                        font-bold
+                        w-6
+                        text-center
+                      "
+                    >
+                      {item.qty}
+                    </span>
+
+                    <button
+                      onClick={() =>
+                        increaseQty(item.id)
+                      }
+
+                      disabled={item.unavailable}
+
+                      className="
+                        w-10
+                        h-10
+                        rounded-xl
+                        bg-orange-500
+                        text-white
+                        font-bold
+
+                        disabled:opacity-50
+                        disabled:cursor-not-allowed
+                      "
+                    >
+                      +
+                    </button>
+
+                  </div>
+
+                  {/* REMOVE BUTTON */}
+                  {
+                    item.unavailable && (
+
+                      <button
+                        onClick={() =>
+                          removeFromCart(item.id)
+                        }
+
+                        className="
+                          bg-red-500
+                          hover:bg-red-600
+
+                          text-white
+                          font-semibold
+                          text-sm
+
+                          px-4
+                          py-2
+
+                          rounded-xl
+
+                          transition
+                          duration-200
+
+                          shadow-sm
+                        "
+                      >
+                        Remove
+                      </button>
+                    )
+                  }
 
                 </div>
 
@@ -259,18 +350,64 @@ export default function CartDrawer({
             {/* CHECKOUT BUTTON */}
             <button
               onClick={checkout}
+
+              disabled={
+                isCheckoutLoading
+              }
+
               className="
                 w-full
-                py-5
-                rounded-3xl
+
                 bg-black
                 text-white
-                text-lg
-                font-bold
-                shadow-xl
+
+                py-5
+
+                rounded-2xl
+
+                font-semibold
+
+                transition
+
+                disabled:opacity-70
+                disabled:cursor-not-allowed
+
+                flex
+                items-center
+                justify-center
+                gap-3
               "
             >
-              Continue to Checkout →
+
+              {
+                isCheckoutLoading ? (
+                  <>
+
+                    <div
+                      className="
+                        w-5
+                        h-5
+
+                        border-2
+                        border-white/30
+                        border-t-white
+
+                        rounded-full
+
+                        animate-spin
+                      "
+                    />
+
+                    Processing...
+                  </>
+                ) : (
+
+                  <>
+                    Continue to Checkout →
+                  </>
+                )
+              }
+
             </button>
 
           </div>

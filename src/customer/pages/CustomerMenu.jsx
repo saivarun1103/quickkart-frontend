@@ -58,6 +58,14 @@ export default function CustomerMenu(){
   const [sessionExpired, setSessionExpired] =
     useState(false)
 
+  const [checkoutError, setCheckoutError] =
+    useState(null)
+
+  const [
+    isCheckoutLoading,
+    setIsCheckoutLoading
+  ] = useState(false);
+
   const isBusinessOpen =
     businessStatus === "open";
 
@@ -254,8 +262,23 @@ export default function CustomerMenu(){
     setCart(updated);
   }
 
+  function removeFromCart(id) {
+
+    setCart(prev =>
+      prev.filter(item =>
+        item.id !== id
+      )
+    );
+
+    setCheckoutError(null);
+  }
+
   //checkout
   async function checkout() {
+
+    if (
+      isCheckoutLoading
+    ) return;
 
     if (cart.length === 0) {
 
@@ -344,7 +367,76 @@ export default function CustomerMenu(){
 
       if (!response.ok) {
 
-        setSessionExpired(true);
+        // -------------------------
+        // SESSION EXPIRED
+        // -------------------------
+
+        if (response.status === 401) {
+
+          setSessionExpired(true);
+          return;
+        }
+
+        // -------------------------
+        // OUT OF STOCK / VALIDATION
+        // -------------------------
+
+        if (response.status === 400) {
+
+          const errors =
+            data?.detail?.items || [];
+
+          if (errors.length > 0) {
+
+            const unavailableItems =
+              data?.detail?.items || [];
+
+            setCart(prev =>
+              prev.map(item => {
+
+                const unavailable =
+                  unavailableItems.find(
+                    i => i.name === item.name
+                  );
+
+                return {
+                  ...item,
+
+                  unavailable:
+                    !!unavailable
+                };
+              })
+            );
+
+            setCheckoutError(
+              "Some items are unavailable"
+            );
+
+          } else {
+
+            setCheckoutError(
+              data?.detail?.message ||
+              "Checkout failed"
+            );
+          }
+
+          return;
+        }
+
+        // -------------------------
+        // BUSINESS CLOSED
+        // -------------------------
+
+        if (response.status === 403) {
+
+          setCheckoutError(
+            data?.detail ||
+            "Business is closed"
+          );
+          return;
+        }
+
+        alert("Checkout failed");
 
         return;
       }
@@ -459,53 +551,196 @@ export default function CustomerMenu(){
     }
   }
 
+  async function validateCart() {
+
+    try {
+
+      const items = {};
+
+      cart.forEach(item => {
+
+        items[item.name] = item.qty;
+      });
+
+      const response = await fetch(
+
+        `${API_BASE}/api/create-razorpay-order`,
+
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body: JSON.stringify({
+
+            business_id:
+              business.id,
+
+            items,
+
+            validate_only: true
+          })
+        }
+      );
+
+      const data =
+        await response.json();
+
+      // STOCK ERROR
+      if (
+        response.status === 400
+      ) {
+
+        const unavailableItems =
+          data?.detail?.items || [];
+
+        setCart(prev =>
+          prev.map(item => {
+
+            const unavailable =
+              unavailableItems.find(
+                i => i.name === item.name
+              );
+
+            if (unavailable) {
+
+              return {
+                ...item,
+                unavailable: true
+              };
+            }
+
+            return item;
+          })
+        );
+
+        setCheckoutError(
+          "Some items are unavailable"
+        );
+
+        return false;
+      }
+
+      // SESSION EXPIRED
+      if (
+        response.status === 401
+      ) {
+
+        setSessionExpired(true);
+
+        return false;
+      }
+
+      return true;
+
+    } catch (error) {
+
+      console.error(error);
+
+      setCheckoutError(
+        "Failed to validate cart"
+      );
+
+      return false;
+    }
+  }
+
   const handleCheckoutClick =
     async () => {
 
-      // -------------------------
-      // SESSION FLOW
-      // -------------------------
+      // prevent multiple clicks
+      if (isCheckoutLoading)
+        return;
 
-      if (sessionToken) {
+      setIsCheckoutLoading(
+        true
+      );
 
-        try {
+      try {
 
-          const response =
-            await fetch(
-              `${API_BASE}/api/check-customer/${sessionToken}`
-          )
+        // -------------------------
+        // VALIDATE STOCK FIRST
+        // -------------------------
 
-          const data =
-            await response.json()
+        const valid =
+          await validateCart();
 
-          if (data.has_name) {
+        if (!valid) {
 
-            checkout()
+          setIsCheckoutLoading(
+            false
+          );
 
-          } else {
-
-            setShowNamePopup(true)
-          }
-
-        } catch (error) {
-
-          console.error(error)
-
-          alert(
-            "Something went wrong"
-          )
+          return;
         }
 
-        return
+        // -------------------------
+        // SESSION FLOW
+        // -------------------------
+
+        if (sessionToken) {
+
+          try {
+
+            const response =
+              await fetch(
+                `${API_BASE}/api/check-customer/${sessionToken}`
+              );
+
+            const data =
+              await response.json();
+
+            if (data.has_name) {
+
+              await checkout();
+
+            } else {
+
+              setShowNamePopup(
+                true
+              );
+            }
+
+          } catch (error) {
+
+            console.error(error);
+
+            alert(
+              "Something went wrong"
+            );
+          }
+
+          setIsCheckoutLoading(
+            false
+          );
+
+          return;
+        }
+
+        // -------------------------
+        // PUBLIC FLOW
+        // -------------------------
+
+        setShowPhonePopup(
+          true
+        );
+
+        setIsCheckoutLoading(
+          false
+        );
+
+      } catch (error) {
+
+        console.error(error);
+
+        setIsCheckoutLoading(
+          false
+        );
       }
-
-      // -------------------------
-      // PUBLIC FLOW
-      // -------------------------
-
-      console.log("PUBLIC CHECKOUT CLICKED")
-      setShowPhonePopup(true)
-  }
+    };
 
   const continueWithPhone =
     async () => {
@@ -845,6 +1080,116 @@ export default function CustomerMenu(){
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-black">
         <ThemeToggle  />
+        {
+          checkoutError && (
+
+            <div
+              className="
+                fixed inset-0
+                bg-black/60
+                backdrop-blur-sm
+                z-[100]
+                flex
+                items-center
+                justify-center
+                p-5
+              "
+            >
+
+              <div
+                className="
+                  bg-white
+                  dark:bg-zinc-900
+
+                  rounded-[2rem]
+
+                  w-full
+                  max-w-md
+
+                  p-7
+
+                  shadow-2xl
+
+                  border
+                  border-red-100
+                  dark:border-zinc-800
+                "
+              >
+
+                <div
+                  className="
+                    w-16 h-16
+                    mx-auto
+                    rounded-full
+
+                    bg-red-100
+                    dark:bg-red-500/10
+
+                    flex
+                    items-center
+                    justify-center
+
+                    text-3xl
+                  "
+                >
+                  ❌
+                </div>
+
+                <h2
+                  className="
+                    text-2xl
+                    font-bold
+                    text-center
+                    mt-5
+
+                    text-zinc-900
+                    dark:text-white
+                  "
+                >
+                  Item Unavailable
+                </h2>
+
+                <p
+                  className="
+                    text-center
+                    text-zinc-500
+                    mt-3
+                    whitespace-pre-line
+                  "
+                >
+                  {checkoutError}
+                </p>
+
+                <button
+                  onClick={() =>
+                    setCheckoutError(null)
+                  }
+
+                  className="
+                    mt-6
+                    w-full
+
+                    bg-red-500
+                    hover:bg-red-600
+
+                    text-white
+                    font-semibold
+
+                    py-4
+
+                    rounded-2xl
+
+                    transition
+                  "
+                >
+                  Got it
+                </button>
+
+              </div>
+
+            </div>
+          )
+        }
         <div className="max-w-7xl mx-auto p-5 pb-40">   
             <BusinessHeader business={business} />
             {
@@ -981,7 +1326,11 @@ export default function CustomerMenu(){
                       cart={cart}
                       increaseQty={increaseQty}
                       decreaseQty={decreaseQty}
+                      removeFromCart={removeFromCart}
                       checkout={handleCheckoutClick}
+                      isCheckoutLoading={
+                        isCheckoutLoading
+                      }
                       onClose={() =>
                         setIsCartOpen(false)
                       }

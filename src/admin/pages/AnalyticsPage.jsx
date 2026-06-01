@@ -3,6 +3,8 @@ import {
     useState
 } from "react";
 import { API_BASE } from "../../config";
+import DatePicker from "react-datepicker"
+import "react-datepicker/dist/react-datepicker.css"
 
 export default function AnalyticsPage() {
 
@@ -10,14 +12,65 @@ export default function AnalyticsPage() {
         .toISOString()
         .split("T")[0]
 
-    const [selectedDate, setSelectedDate] =
-        useState(today)
+    const [dateRange, setDateRange] =
+        useState([
+            new Date(),
+            new Date()
+        ])
+
+    const [
+        startDate,
+        endDate
+    ] = dateRange
 
     const [analytics, setAnalytics] =
         useState(null)
 
     const [loading, setLoading] =
         useState(true)
+
+    const setLastWeekRange = () => {
+
+        const now = new Date()
+
+        // get current week's monday
+        const currentDay =
+            now.getDay()
+
+        const diffToMonday =
+            currentDay === 0
+                ? -6
+                : 1 - currentDay
+
+        const thisMonday =
+            new Date(now)
+
+        thisMonday.setDate(
+            now.getDate() +
+            diffToMonday
+        )
+
+        // previous monday
+        const lastMonday =
+            new Date(thisMonday)
+
+        lastMonday.setDate(
+            thisMonday.getDate() - 7
+        )
+
+        // previous sunday
+        const lastSunday =
+            new Date(lastMonday)
+
+        lastSunday.setDate(
+            lastMonday.getDate() + 6
+        )
+
+        setDateRange([
+            lastMonday,
+            lastSunday
+        ])
+    }
 
     const fetchAnalytics = async () => {
 
@@ -26,7 +79,15 @@ export default function AnalyticsPage() {
             setLoading(true)
 
             const response = await fetch(
-                `${API_BASE}/api/admin/analytics?date=${selectedDate}`,
+                `${API_BASE}/api/admin/analytics?startDate=${
+                    startDate
+                        .toISOString()
+                        .split("T")[0]
+                }&endDate=${
+                    (endDate || startDate)
+                        .toISOString()
+                        .split("T")[0]
+                }`,
                 {
                     headers: {
                         Authorization:
@@ -58,13 +119,18 @@ export default function AnalyticsPage() {
 
         fetchAnalytics()
 
-    }, [selectedDate])
+    }, [
+        startDate,
+        endDate
+    ])
 
     return (
 
         <div className="
-            p-6
+            p-4 md:p-6
             text-white
+            overflow-x-hidden
+            w-full
         ">
 
             {/* HEADER */}
@@ -81,7 +147,7 @@ export default function AnalyticsPage() {
                 </p>
 
                 <h1 className="
-                    text-4xl
+                    text-3xl md:text-4xl
                     font-bold
                     mt-2
                 ">
@@ -96,11 +162,8 @@ export default function AnalyticsPage() {
                 bg-zinc-900
                 border
                 border-zinc-800
-
                 rounded-3xl
-
                 p-6
-
                 mb-8
             ">
 
@@ -109,35 +172,144 @@ export default function AnalyticsPage() {
                     text-zinc-400
                     mb-3
                 ">
-                    Select Date
+                    Select Date Range
                 </label>
 
-                <input
-                    type="date"
+                <DatePicker
+                    selectsRange={true}
 
-                    value={selectedDate}
+                    startDate={startDate}
 
-                    onChange={(e) =>
-                        setSelectedDate(
-                            e.target.value
-                        )
+                    endDate={endDate}
+
+                    onChange={(update) =>
+                        setDateRange(update)
                     }
+
+                    maxDate={
+                        new Date()
+                    }
+
+                    dateFormat="dd MMM yyyy"
 
                     className="
                         bg-zinc-800
                         border
                         border-zinc-700
-
                         px-4
                         py-3
-
                         rounded-2xl
-
                         outline-none
-
+                        text-white
+                        w-full md:w-[280px]
                         focus:border-blue-500
                     "
+
+                    placeholderText="
+                        Select date range
+                    "
                 />
+
+                {/* QUICK FILTERS */}
+
+                <div className="
+                    flex
+                    flex-col
+                    sm:flex-row
+                    gap-3
+                    mt-5
+                    w-full
+                ">
+
+                    <button
+                        onClick={() => {
+
+                            const today =
+                                new Date()
+
+                            setDateRange([
+                                today,
+                                today
+                            ])
+                        }}
+                        className="
+                            bg-zinc-800
+                            hover:bg-zinc-700
+                            px-4
+                            py-2
+                            rounded-xl
+                            text-sm
+                        "
+                    >
+                        Today
+                    </button>
+
+                    <button
+                        onClick={() => {
+
+                            const now =
+                                new Date()
+
+                            const currentDay =
+                                now.getDay()
+
+                            const diffToMonday =
+                                currentDay === 0
+                                    ? -6
+                                    : 1 -
+                                    currentDay
+
+                            const thisMonday =
+                                new Date(now)
+
+                            thisMonday.setDate(
+                                now.getDate()
+                                +
+                                diffToMonday
+                            )
+
+                            const lastMonday =
+                                new Date(
+                                    thisMonday
+                                )
+
+                            lastMonday.setDate(
+                                thisMonday
+                                .getDate()
+                                - 7
+                            )
+
+                            const lastSunday =
+                                new Date(
+                                    lastMonday
+                                )
+
+                            lastSunday.setDate(
+                                lastMonday
+                                .getDate()
+                                + 6
+                            )
+
+                            setDateRange([
+                                lastMonday,
+                                lastSunday
+                            ])
+                        }}
+                        className="
+                            bg-blue-600
+                            hover:bg-blue-700
+                            px-4
+                            py-2
+                            rounded-xl
+                            text-sm
+                            w-full
+                            sm:w-auto
+                        "
+                    >
+                        Last Monday → Sunday
+                    </button>
+
+                </div>
 
             </div>
 
