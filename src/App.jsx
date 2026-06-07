@@ -54,7 +54,7 @@ export default function App() {
 
         {/* REGISTER */}
         <Route
-            path="/register"
+            path="/secretregister"
             element={<Register />}
         />
 
