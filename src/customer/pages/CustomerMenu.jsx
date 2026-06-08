@@ -532,8 +532,7 @@ export default function CustomerMenu(){
         },
 
         theme: {
-
-          color: "#f97316"
+          color: "#2563eb"
         }
       };
 
@@ -1021,9 +1020,9 @@ export default function CustomerMenu(){
               rounded-[2rem]
 
               border
-              border-yellow-500/20
+              border-green-500/20
 
-              bg-yellow-500/10
+              bg-green-500/10
 
               px-8
               py-16
@@ -1044,7 +1043,7 @@ export default function CustomerMenu(){
                 text-4xl
                 font-bold
 
-                text-yellow-500
+                text-green-500
               "
             >
               Under Maintenance
@@ -1078,7 +1077,7 @@ export default function CustomerMenu(){
   }
  
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-black">
+    <div className="min-h-screen bg-[#ededed] dark:bg-black">
         <ThemeToggle  />
         {
           checkoutError && (
@@ -1093,6 +1092,7 @@ export default function CustomerMenu(){
                 items-center
                 justify-center
                 p-5
+                
               "
             >
 
@@ -1203,9 +1203,9 @@ export default function CustomerMenu(){
                     rounded-3xl
 
                     border
-                    border-orange-300/30
+                    border-green-300/30
 
-                    bg-orange-500/10
+                    bg-green-500/10
 
                     px-6
                     py-5
@@ -1223,7 +1223,7 @@ export default function CustomerMenu(){
 
                       rounded-full
 
-                      bg-orange-500
+                      bg-green-500
 
                       animate-pulse
                     "
@@ -1236,7 +1236,7 @@ export default function CustomerMenu(){
                         text-lg
                         font-bold
 
-                        text-orange-500
+                        text-green-600 dark:text-green-400
                       "
                     >
                       Business Closed

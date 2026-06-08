@@ -12,7 +12,7 @@ export default function FoodCard({
   return (
     <div
       className="
-        bg-white
+        bg-[#ffffff]
         rounded-3xl
         overflow-hidden
         shadow-sm
@@ -132,7 +132,7 @@ export default function FoodCard({
             className="
               text-lg
               font-bold
-              text-orange-500
+              text-[#26b34d] dark:text-[#26b34d]
               whitespace-nowrap
             "
           >
@@ -189,7 +189,7 @@ export default function FoodCard({
                   flex
                   items-center
                   justify-between
-                  bg-orange-50
+                  bg-green-200/70 dark:bg-green-200/50
                   rounded-2xl
                   p-2
                 "
@@ -235,7 +235,7 @@ export default function FoodCard({
                     w-10
                     h-10
                     rounded-xl
-                    bg-orange-500
+                    bg-[#26b34d]
                     text-white
                     text-lg
                     font-bold
@@ -261,12 +261,12 @@ export default function FoodCard({
                   w-full
                   py-3
                   rounded-2xl
-                  bg-orange-500
+                  bg-[#26b34d]
                   text-white
                   font-semibold
                   transition-all
                   duration-300
-                  hover:bg-orange-600
+                  hover:bg-[#1e913e]
                   hover:scale-[1.02]
                   active:scale-[0.98]
                 "

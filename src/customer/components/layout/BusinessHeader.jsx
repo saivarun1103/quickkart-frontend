@@ -10,7 +10,7 @@ export default function BusinessHeader({ business }) {
         rounded-[32px]
         bg-black
         min-h-[320px]
-        shadow-2xl
+        shadow-xl
       "
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}

@@ -63,7 +63,7 @@ export default function FloatingCart({ cart, checkout }) {
               w-12
               h-12
               rounded-2xl
-              bg-orange-500
+              bg-green-500
               flex
               items-center
               justify-center
@@ -112,7 +112,7 @@ export default function FloatingCart({ cart, checkout }) {
           <p
             className="
               text-sm
-              text-orange-400
+              text-green-400
               font-medium
             "
           >
