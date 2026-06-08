@@ -7,7 +7,7 @@ export default function CartDrawer({
   checkout,
 
   isCheckoutLoading,
-  
+
   onClose,
 
   showPhonePopup,
@@ -254,7 +254,7 @@ export default function CartDrawer({
                         w-10
                         h-10
                         rounded-xl
-                        bg-orange-500
+                        bg-green-500
                         text-white
                         font-bold
 
@@ -339,7 +339,7 @@ export default function CartDrawer({
                 className="
                   text-3xl
                   font-black
-                  text-orange-500
+                  text-green-500
                 "
               >
                 ₹{total}

@@ -10,10 +10,11 @@ export default function CategoryTabs({
         sticky
         top-0
         z-30
-        bg-gray-100/80 dark:bg-zinc-950/80
+        bg-[#ededed] dark:bg-black
         backdrop-blur-xl
         py-4
         mt-6
+        
       "
     >
 
@@ -42,7 +43,7 @@ export default function CategoryTabs({
 
               ${
                 activeCategory === category
-                  ? "bg-black text-white shadow-lg dark:bg-orange-500"
+                  ? "bg-black text-white shadow-lg dark:bg-[#26b34d]"
                   : "bg-white text-gray-700 dark:bg-zinc-900 dark:text-zinc-200"
               }
             `}
