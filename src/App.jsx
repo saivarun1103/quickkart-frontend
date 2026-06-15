@@ -12,6 +12,7 @@ import SettingsPage from "./admin/pages/SettingsPage";
 import { Navigate } from "react-router-dom";
 import OrderSuccess from "./customer/pages/OrderSuccess";
 import Discover from "./Pages/Discover";
+import PrivacyPolicy from "./Pages/PrivacyPolicy";
 
 export default function App() {  
   return (
@@ -20,6 +21,11 @@ export default function App() {
         <Route
             path=""
             element={<Discover />}
+        />
+
+        <Route
+            path="/privacy-policy"
+            element={<PrivacyPolicy/>}
         />
 
         {/* DISCOVER PAGE */}
