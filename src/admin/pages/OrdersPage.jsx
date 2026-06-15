@@ -303,6 +303,8 @@ export default function OrdersPage() {
             const data =
                 await response.json();
 
+            console.log("VERIFY RESPONSE:", data);
+
             if (!response.ok) {
 
                 alert(
@@ -313,7 +315,10 @@ export default function OrdersPage() {
                 return;
             }
 
-            setVerifiedOrder(data);
+            setVerifiedOrder({
+                ...data,
+                items: data.items || {}
+            });
 
             setPickupPin("");
 
@@ -587,14 +592,9 @@ export default function OrdersPage() {
 
                         <div className="
                             mt-5
-
                             bg-green-500/10
-
-                            border
-                            border-green-500/20
-
+                            border border-green-500/20
                             rounded-2xl
-
                             p-4
                         ">
 
@@ -615,15 +615,11 @@ export default function OrdersPage() {
                                     onClick={() =>
                                         setVerifiedOrder(null)
                                     }
-
                                     className="
                                         text-zinc-500
                                         hover:text-white
-
                                         text-sm
-
                                         transition
-
                                         cursor-pointer
                                     "
                                 >
@@ -638,31 +634,31 @@ export default function OrdersPage() {
                             ">
                                 Order #
                                 {
-                                    String(
-                                        verifiedOrder.id
-                                    ).padStart(
-                                        4,
-                                        "0"
-                                    )
+                                    verifiedOrder?.id
+                                        ? String(
+                                            verifiedOrder.id
+                                        ).padStart(4, "0")
+                                        : "----"
                                 }
                             </p>
 
-                            <p className="
-                                text-zinc-400
-                            ">
+                            <p className="text-zinc-400">
                                 {
-                                    verifiedOrder.customer_name
+                                    verifiedOrder?.customer_name
                                 }
                             </p>
+
                             <div className="
                                 mt-4
                                 space-y-1
                             ">
 
-                                {(verifiedOrder.items || [])
-                                .slice(0,3)
-                                .map(
-                                    (item, index) => (
+                                {Object.entries(
+                                    verifiedOrder?.items || {}
+                                )
+                                    .slice(0, 3)
+                                    .map(
+                                        ([name, qty], index) => (
 
                                             <p
                                                 key={index}
@@ -671,12 +667,14 @@ export default function OrdersPage() {
                                                     text-sm
                                                 "
                                             >
-                                                {item.qty} × {item.name}
+                                                {qty} × {name}
                                             </p>
                                         )
                                 )}
-                                {(order.items || [])
-                                .length > 3 && (
+
+                                {Object.keys(
+                                    verifiedOrder?.items || {}
+                                ).length > 3 && (
 
                                     <p className="
                                         text-zinc-500
