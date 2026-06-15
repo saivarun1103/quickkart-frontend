@@ -125,7 +125,7 @@ export default function BusinessHeader({ business }) {
         </h1>
 
         {/* SUBTITLE */}
-        <p
+        {/* <p
           className="
             text-white/80
             mt-2
@@ -134,7 +134,7 @@ export default function BusinessHeader({ business }) {
           "
         >
           Fresh • Fast • Delicious
-        </p>
+        </p> */}
 
         {/* INFO BADGES */}
         <div
@@ -146,7 +146,7 @@ export default function BusinessHeader({ business }) {
           "
         >
 
-          <div
+          {/* <div
             className="
               px-4
               py-2
@@ -161,7 +161,7 @@ export default function BusinessHeader({ business }) {
             "
           >
             ⭐ 4.8 Rating
-          </div>
+          </div> */}
 
           <div
             className="
@@ -177,7 +177,7 @@ export default function BusinessHeader({ business }) {
               border-white/10
             "
           >
-            ⚡ 20-30 mins
+            ⚡ 10-15 mins
           </div>
 
         </div>

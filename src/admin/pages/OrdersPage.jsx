@@ -659,28 +659,24 @@ export default function OrdersPage() {
                                 space-y-1
                             ">
 
-                                {Object.entries(
-                                    verifiedOrder.items || {}
-                                )
-                                    .slice(0,3)
-                                    .map(
-                                        ([name, qty], index) => (
+                                {(verifiedOrder.items || [])
+                                .slice(0,3)
+                                .map(
+                                    (item, index) => (
 
                                             <p
                                                 key={index}
-
                                                 className="
                                                     text-zinc-300
                                                     text-sm
                                                 "
                                             >
-                                                {qty} × {name}
+                                                {item.qty} × {item.name}
                                             </p>
                                         )
                                 )}
-                                {Object.keys(
-                                    verifiedOrder.items || {}
-                                ).length > 3 && (
+                                {(order.items || [])
+                                .length > 3 && (
 
                                     <p className="
                                         text-zinc-500
@@ -976,31 +972,29 @@ export default function OrdersPage() {
                             space-y-2
                         ">
 
-                            {Object.entries(
-                                order.items || {}
-                            )
-                                .slice(0, 3)
-                                .map(
-                                    (
-                                        [name, qty],
-                                        index
-                                    ) => (
+                            {(order.items || [])
+                            .slice(0, 3)
+                            .map((item, index) => (
+                                <div
+                                key={index}
+                                className="
+                                    flex
+                                    justify-between
+                                    text-zinc-300
+                                "
+                                >
+                                <span>
+                                    {item.name} x{item.qty}
+                                </span>
 
-                                        <div
-                                            key={index}
+                                <span>
+                                    ₹{item.subtotal}
+                                </span>
+                                </div>
+                            ))}
 
-                                            className="
-                                                text-zinc-300
-                                            "
-                                        >
-                                            {name} x{qty}
-                                        </div>
-                                    )
-                                )}
-
-                            {Object.keys(
-                                order.items || {}
-                            ).length > 3 && (
+                            {(order.items || [])
+                            .length > 3 && (
 
                                 <div className="
                                     text-zinc-500
@@ -1254,33 +1248,25 @@ export default function OrdersPage() {
                                 space-y-3
                             ">
 
-                                {Object.entries(
-                                    selectedOrder.items || {}
-                                ).map(
-                                    (
-                                        [name, qty],
-                                        index
-                                    ) => (
+                                {(selectedOrder.items || [])
+                                .map(
+                                    (item, index) => (
 
                                         <div
                                             key={index}
-
                                             className="
                                                 flex
                                                 justify-between
-
                                                 text-zinc-300
                                             "
                                         >
-
                                             <span>
-                                                {name}
+                                                {item.name} x{item.qty}
                                             </span>
 
                                             <span>
-                                                x{qty}
+                                                ₹{item.subtotal}
                                             </span>
-
                                         </div>
                                     )
                                 )}
