@@ -723,11 +723,6 @@ export default function OrdersPage() {
                         },
 
                         {
-                            label: "PREPARING",
-                            value: "preparing"
-                        },
-
-                        {
                             label: "READY",
                             value: "ready"
                         },
@@ -1013,42 +1008,6 @@ export default function OrdersPage() {
                         ">
 
                             {order.status === "pending" && (
-
-                                <button
-                                    onClick={(e) => {
-
-                                        e.stopPropagation();
-
-                                        setConfirmModal({
-                                            orderId: order.id,
-                                            status: "preparing"
-                                        });
-                                    }}
-
-                                    className="
-                                        bg-orange-500
-                                        hover:bg-orange-600
-
-                                        text-white
-
-                                        px-4
-                                        py-2
-
-                                        rounded-xl
-
-                                        text-sm
-                                        font-medium
-
-                                        transition
-
-                                        cursor-pointer
-                                    "
-                                >
-                                    Start Preparing
-                                </button>
-                            )}
-
-                            {order.status === "preparing" && (
 
                                 <button
                                     onClick={(e) => {
