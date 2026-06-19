@@ -459,8 +459,7 @@ export default function CartDrawer({
                   mb-5
                 "
               >
-                We’ll use this to find
-                your account.
+                Please enter your WhatsApp number to get your order status.
               </p>
 
               <input
@@ -475,7 +474,7 @@ export default function CartDrawer({
                 maxLength={10}
                 inputMode="numeric"
                 pattern="[6-9][0-9]{9}"
-                placeholder="9876543210"
+                placeholder="Enter Phone number"
                 className="
                   w-full
                   border
