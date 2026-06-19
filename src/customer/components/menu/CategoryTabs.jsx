@@ -48,7 +48,7 @@ export default function CategoryTabs({
 
               ${
                 activeCategory === category
-                  ? "bg-black text-white shadow-lg dark:bg-[#26b34d]"
+                  ? "bg-black text-white shadow-lg dark:bg-[#52c472]"
                   : "bg-white text-gray-700 dark:bg-zinc-900 dark:text-zinc-200"
               }
             `}
