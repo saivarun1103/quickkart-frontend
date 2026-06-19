@@ -1029,18 +1029,45 @@ export default function CustomerMenu(){
                 navigate("/");
               }}
             >
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white dark:bg-zinc-900 border border-emerald-100/60 dark:border-emerald-900/40 flex items-center justify-center shadow-sm group-hover:border-emerald-300 transition-all duration-300">
-                <img
-                  src={logoImg}
-                  alt="GoSkipDQ Logo"
-                  className="w-5.5 h-5.5 object-contain" 
-                />
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white dark:bg-zinc-900 border border-emerald-100/60 dark:border-emerald-900/40 flex items-center justify-center shadow-sm group-hover:border-emerald-300 transition-all duration-300">
+                  <img
+                    src={logoImg}
+                    alt="GoSkipDQ Logo"
+                    className="w-5.5 h-5.5 object-contain" 
+                  />
+                </div>
+                <span className="hidden sm:inline-block text-lg sm:text-xl font-black italic tracking-tighter py-1 leading-normal">
+                  <span className="text-emerald-500">Go</span>
+                  <span className="text-black dark:text-white">Skip</span>
+                  <span className="text-emerald-500">DQ</span>
+                </span>
               </div>
-              <span className="text-lg sm:text-xl font-black italic tracking-tighter py-1 leading-normal">
-                <span className="text-emerald-500">Go</span>
-                <span className="text-black dark:text-white">Skip</span>
-                <span className="text-emerald-500">DQ</span>
-              </span>
+
+              {/* Dynamic collaboration section */}
+              {business && (
+                <div className="flex items-center gap-1.5 sm:gap-2 ml-0.5 min-w-0">
+                  <span className="text-xs sm:text-sm font-medium text-gray-400 dark:text-zinc-500 shrink-0">
+                    ✕
+                  </span>
+                  
+                  {/* Business Logo (if available) */}
+                  {business.logo_url && (
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg overflow-hidden bg-white border border-gray-100 dark:border-zinc-800/80 flex items-center justify-center shadow-sm shrink-0">
+                      <img
+                        src={business.logo_url}
+                        alt={business.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Business Name */}
+                  <span className="text-sm sm:text-base font-bold text-gray-800 dark:text-zinc-200 truncate max-w-[120px] sm:max-w-[180px] leading-tight">
+                    {business.name}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Right Action Items */}
@@ -1142,18 +1169,45 @@ export default function CustomerMenu(){
               navigate("/");
             }}
           >
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white dark:bg-zinc-900 border border-emerald-100/60 dark:border-emerald-900/40 flex items-center justify-center shadow-sm group-hover:border-emerald-300 transition-all duration-300">
-              <img
-                src={logoImg}
-                alt="GoSkipDQ Logo"
-                className="w-5.5 h-5.5 object-contain" 
-              />
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white dark:bg-zinc-900 border border-emerald-100/60 dark:border-emerald-900/40 flex items-center justify-center shadow-sm group-hover:border-emerald-300 transition-all duration-300">
+                <img
+                  src={logoImg}
+                  alt="GoSkipDQ Logo"
+                  className="w-5.5 h-5.5 object-contain" 
+                />
+              </div>
+              <span className="hidden sm:inline-block text-lg sm:text-xl font-black italic tracking-tighter py-1 leading-normal">
+                <span className="text-emerald-500">Go</span>
+                <span className="text-black dark:text-white">Skip</span>
+                <span className="text-emerald-500">DQ</span>
+              </span>
             </div>
-            <span className="text-lg sm:text-xl font-black italic tracking-tighter py-1 leading-normal">
-              <span className="text-emerald-500">Go</span>
-              <span className="text-black dark:text-white">Skip</span>
-              <span className="text-emerald-500">DQ</span>
-            </span>
+
+            {/* Dynamic collaboration section */}
+            {business && (
+              <div className="flex items-center gap-2 sm:gap-2 ml-0.5 min-w-0">
+                <span className="text-xs sm:text-sm font-medium text-gray-400 dark:text-zinc-500 shrink-0">
+                  ✕
+                </span>
+                
+                {/* Business Logo (if available) */}
+                {business.logo_url && (
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg overflow-hidden bg-white border border-gray-100 dark:border-zinc-800/80 flex items-center justify-center shadow-sm shrink-0">
+                    <img
+                      src={business.logo_url}
+                      alt={business.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                
+                {/* Business Name */}
+                <span className="text-sm sm:text-base font-bold text-gray-800 dark:text-zinc-200 truncate max-w-[120px] sm:max-w-[180px] leading-tight">
+                  {business.name}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Right Action Items */}

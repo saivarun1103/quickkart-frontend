@@ -254,7 +254,7 @@ export default function CartDrawer({
                         w-10
                         h-10
                         rounded-xl
-                        bg-green-500
+                        bg-[#52c472]
                         text-white
                         font-bold
 
@@ -339,7 +339,7 @@ export default function CartDrawer({
                 className="
                   text-3xl
                   font-black
-                  text-green-500
+                  text-[#52c472]
                 "
               >
                 ₹{total}

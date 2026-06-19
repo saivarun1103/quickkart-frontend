@@ -40,7 +40,7 @@ export default function CategoryTabs({
             className={`
               whitespace-nowrap
               px-5
-              py-3
+              py-1
               rounded-2xl
               font-semibold
               transition-all

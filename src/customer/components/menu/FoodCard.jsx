@@ -235,7 +235,7 @@ export default function FoodCard({
                     w-10
                     h-10
                     rounded-xl
-                    bg-[#26b34d]
+                    bg-[#52c472]
                     text-white
                     text-lg
                     font-bold
@@ -261,12 +261,12 @@ export default function FoodCard({
                   w-full
                   py-3
                   rounded-2xl
-                  bg-[#26b34d]
+                  bg-[#52c472]
                   text-white
                   font-semibold
                   transition-all
                   duration-300
-                  hover:bg-[#1e913e]
+                  hover:bg-[#41a35a]
                   hover:scale-[1.02]
                   active:scale-[0.98]
                 "
