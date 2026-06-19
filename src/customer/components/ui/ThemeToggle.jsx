@@ -48,43 +48,36 @@ export default function ThemeToggle() {
         "light"
       );
     }
+    
+    window.dispatchEvent(new Event("theme-changed"));
   }
 
   return (
     <button
       onClick={toggleTheme}
       className="
-        fixed
-        top-6
-        right-6
-        z-50
-
-        w-10
-        h-10
-
-        rounded-2xl
-
-        bg-white/80
-        dark:bg-zinc-900/80
-
-        backdrop-blur-xl
-
+        w-8
+        h-8
+        sm:w-9
+        sm:h-9
+        rounded-xl
+        bg-white
+        dark:bg-zinc-900
         border
-        border-white/20
-        dark:border-zinc-700
-
-        shadow-xl
-
+        border-emerald-100/60
+        dark:border-emerald-900/40
+        hover:border-emerald-300
+        dark:hover:border-emerald-800
+        shadow-sm
         flex
         items-center
         justify-center
-
-        text-2xl
-
+        text-base
+        sm:text-lg
         transition-all
         duration-300
-
-        hover:scale-110
+        hover:scale-105
+        cursor-pointer
       "
     >
       {darkMode ? "☀️" : "🌙"}

@@ -8,13 +8,18 @@ export default function CategoryTabs({
     <div
       className="
         sticky
-        top-0
+        top-[47px]
+        sm:top-[53px]
         z-30
-        bg-[#ededed] dark:bg-black
-        backdrop-blur-xl
-        py-4
+        bg-white/70 dark:bg-zinc-950/70
+        backdrop-blur-md
+        py-2
         mt-6
-        
+        transition-all
+        duration-500
+        border-b
+        border-emerald-500/5
+        dark:border-emerald-500/10
       "
     >
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import FoodCard from "../components/menu/FoodCard";
 import BusinessHeader from "../components/layout/BusinessHeader";
 import FloatingCart from "../components/cart/FloatingCart";
@@ -9,8 +9,27 @@ import CategoryTabs from "../components/menu/CategoryTabs";
 // import DietaryFilter from "../components/menu/DietaryFilter";
 import ThemeToggle from "../components/ui/ThemeToggle";
 import { API_BASE } from "../../config";
+import logoImg from "../../assets/logo.png";
+import skipImgLight from "../../assets/queue_skip_transparent_black.png";
+import skipImgDark from "../../assets/queue_skip_transparent_white.png";
 
 export default function CustomerMenu(){
+  const navigate = useNavigate();
+  const [isDarkMode, setIsDarkMode] = useState(
+    document.documentElement.classList.contains("dark")
+  );
+
+  useEffect(() => {
+    const handleThemeChange = () => {
+      setIsDarkMode(document.documentElement.classList.contains("dark"));
+    };
+    window.addEventListener("theme-changed", handleThemeChange);
+    handleThemeChange();
+    return () => window.removeEventListener("theme-changed", handleThemeChange);
+  }, []);
+
+  const skipImg = isDarkMode ? skipImgDark : skipImgLight;
+
   const [items, setItems] = useState([]);
   const [cart, setCart] = useState([]);
   const { businessSlug, sessionToken } =
@@ -991,17 +1010,51 @@ export default function CustomerMenu(){
   }
 
   if (isMaintenance) {
-
     return (
-
       <div className="
         min-h-screen
-
         bg-gray-100
         dark:bg-black
+        transition-colors
+        duration-500
       ">
+        {/* BRAND NAVBAR */}
+        <header className="sticky top-0 z-50 backdrop-blur-md bg-white/70 dark:bg-zinc-950/70 border-b border-emerald-500/5 dark:border-emerald-500/10 px-5 py-2 transition-all duration-500">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            
+            {/* Brand Logo & Name */}
+            <div 
+              className="flex items-center gap-2 sm:gap-2.5 cursor-pointer group" 
+              onClick={() => {
+                navigate("/");
+              }}
+            >
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white dark:bg-zinc-900 border border-emerald-100/60 dark:border-emerald-900/40 flex items-center justify-center shadow-sm group-hover:border-emerald-300 transition-all duration-300">
+                <img
+                  src={logoImg}
+                  alt="GoSkipDQ Logo"
+                  className="w-5.5 h-5.5 object-contain" 
+                />
+              </div>
+              <span className="text-lg sm:text-xl font-black italic tracking-tighter py-1 leading-normal">
+                <span className="text-emerald-500">Go</span>
+                <span className="text-black dark:text-white">Skip</span>
+                <span className="text-emerald-500">DQ</span>
+              </span>
+            </div>
 
-        <ThemeToggle />
+            {/* Right Action Items */}
+            <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+                <ThemeToggle />
+                <img
+                  src={skipImg}
+                  alt="GoSkipDQ Illustration"
+                  className="h-8 sm:h-9.5 w-auto object-contain"
+                />
+            </div>
+
+          </div>
+        </header>
 
         <div className="
           max-w-7xl
@@ -1077,8 +1130,44 @@ export default function CustomerMenu(){
   }
  
   return (
-    <div className="min-h-screen bg-[#ededed] dark:bg-black">
-        <ThemeToggle  />
+    <div className="min-h-screen bg-[#ededed] dark:bg-black transition-colors duration-500">
+      {/* BRAND NAVBAR */}
+      <header className="sticky top-0 z-50 backdrop-blur-md bg-white/70 dark:bg-zinc-950/70 border-b border-emerald-500/5 dark:border-emerald-500/10 px-5 py-2 transition-all duration-500">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          
+          {/* Brand Logo & Name */}
+          <div 
+            className="flex items-center gap-2 sm:gap-2.5 cursor-pointer group" 
+            onClick={() => {
+              navigate("/");
+            }}
+          >
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white dark:bg-zinc-900 border border-emerald-100/60 dark:border-emerald-900/40 flex items-center justify-center shadow-sm group-hover:border-emerald-300 transition-all duration-300">
+              <img
+                src={logoImg}
+                alt="GoSkipDQ Logo"
+                className="w-5.5 h-5.5 object-contain" 
+              />
+            </div>
+            <span className="text-lg sm:text-xl font-black italic tracking-tighter py-1 leading-normal">
+              <span className="text-emerald-500">Go</span>
+              <span className="text-black dark:text-white">Skip</span>
+              <span className="text-emerald-500">DQ</span>
+            </span>
+          </div>
+
+          {/* Right Action Items */}
+          <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+              <ThemeToggle />
+              <img
+                src={skipImg}
+                alt="GoSkipDQ Illustration"
+                className="h-8 sm:h-9.5 w-auto object-contain"
+              />
+          </div>
+
+        </div>
+      </header>
         {
           checkoutError && (
 

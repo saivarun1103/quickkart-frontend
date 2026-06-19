@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_BASE } from "../config";
 import logoImg from "../assets/logo.png";
+import skipImgLight from "../assets/queue_skip_transparent_black.png";
+import skipImgDark from "../assets/queue_skip_transparent_white.png";
+import ThemeToggle from "../customer/components/ui/ThemeToggle";
 
 export default function Discover() {
 
@@ -10,6 +13,21 @@ export default function Discover() {
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const [isDarkMode, setIsDarkMode] = useState(
+    document.documentElement.classList.contains("dark")
+  );
+
+  useEffect(() => {
+    const handleThemeChange = () => {
+      setIsDarkMode(document.documentElement.classList.contains("dark"));
+    };
+    window.addEventListener("theme-changed", handleThemeChange);
+    handleThemeChange();
+    return () => window.removeEventListener("theme-changed", handleThemeChange);
+  }, []);
+
+  const skipImg = isDarkMode ? skipImgDark : skipImgLight;
 
   useEffect(() => {
 
@@ -70,46 +88,68 @@ export default function Discover() {
     }, [query]);
 
   return (
-    <div className="min-h-screen bg-[#f3f4f6] px-5 py-10">
+    <div className="min-h-screen bg-[#f3f4f6] dark:bg-black font-sans pb-20 selection:bg-emerald-100 selection:text-emerald-900 transition-colors duration-500">
 
-        <div className="max-w-2xl mx-auto">
-
-        {/* HEADER */}
-        <div className="mb-8 flex flex-row justify-between items-center gap-4">
-
-            <div>
-
-                <h1 className="
-                text-3xl sm:text-4xl
-                font-bold
-                text-gray-900
-                ">
-                Discover
-                </h1>
-
-                <p className="
-                text-gray-500
-                text-sm sm:text-base
-                mt-1 sm:mt-2
-                ">
-                Find businesses and order instantly
-                </p>
-
+      {/* PREMIUM STICKY NAVBAR */}
+      <header className="sticky top-0 z-50 backdrop-blur-md bg-white/70 dark:bg-zinc-950/70 border-b border-emerald-500/5 dark:border-emerald-500/10 px-5 py-2 transition-all duration-500">
+        <div className="max-w-2xl mx-auto flex items-center justify-between">
+          
+          {/* Brand Logo & Name */}
+          <div 
+            className="flex items-center gap-2 sm:gap-2.5 cursor-pointer group" 
+            onClick={() => {
+              setQuery("");
+              navigate("/");
+            }}
+          >
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white dark:bg-zinc-900 border border-emerald-100/60 dark:border-emerald-900/40 flex items-center justify-center shadow-sm group-hover:border-emerald-300 dark:group-hover:border-emerald-800 transition-all duration-300">
+              <img
+                src={logoImg}
+                alt="GoSkipDQ Logo"
+                className="w-5.5 h-5.5 object-contain" 
+              />
             </div>
+            <span className="text-lg sm:text-xl font-black italic tracking-tighter py-1 leading-normal">
+              <span className="text-emerald-500">Go</span>
+              <span className="text-black dark:text-white">Skip</span>
+              <span className="text-emerald-500">DQ</span>
+            </span>
+          </div>
 
-            <div className="flex items-center gap-2 sm:gap-3 bg-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-2xl border border-gray-100 shadow-sm shrink-0">
+          {/* Right Action Items */}
+          <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+              <ThemeToggle />
+              <img
+                src={skipImg}
+                alt="GoSkipDQ Illustration"
+                className="h-8 sm:h-9.5 w-auto object-contain"
+              />
+          </div>
 
-                <img
-                    src={logoImg}
-                    alt="GoSkipDQ Logo"
-                    className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
-                />
+        </div>
+      </header>
 
-                <span className="font-bold text-gray-800 text-base sm:text-lg tracking-tight whitespace-nowrap">
-                    GoSkipDQ
-                </span>
+      {/* BODY CONTENT */}
+      <div className="max-w-2xl mx-auto px-5 pt-1.5">
 
-            </div>
+        {/* HERO TITLE HEADER */}
+        <div className="mb-6">
+
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100/65 dark:bg-emerald-900/30 rounded-full uppercase tracking-wider mb-2.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Skip the waiting lines
+            </span>
+
+            <h1 className="
+            text-2.5xl sm:text-3.5xl
+            font-extrabold
+            text-gray-900 dark:text-white
+            tracking-tight
+            leading-tight
+            ">
+            Discover & Order from <br />
+            <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">Favorite Local Spots</span>
+            </h1>
 
         </div>
 
@@ -118,7 +158,7 @@ export default function Discover() {
 
             <input
             type="text"
-            placeholder="Search business or phone number"
+            placeholder="Search business or business phone number"
             value={query}
             onChange={(e) =>
                 setQuery(e.target.value)
@@ -128,7 +168,9 @@ export default function Discover() {
                 rounded-2xl
                 border
                 border-gray-200
+                dark:border-zinc-800
                 bg-white
+                dark:bg-zinc-900
                 pl-5
                 pr-12
                 py-4
@@ -139,6 +181,8 @@ export default function Discover() {
                 focus:ring-2
                 focus:ring-emerald-500/50
                 focus:border-emerald-400
+                text-gray-900
+                dark:text-white
             "
             />
 
@@ -161,13 +205,13 @@ export default function Discover() {
                 {[1, 2, 3].map((i) => (
                     <div
                         key={i}
-                        className="animate-pulse bg-white border border-gray-100 rounded-3xl p-4 sm:p-5 flex items-center gap-4 sm:gap-5 shadow-sm"
+                        className="animate-pulse bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-3xl p-4 sm:p-5 flex items-center gap-4 sm:gap-5 shadow-sm"
                     >
-                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gray-200 shrink-0" />
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gray-200 dark:bg-zinc-800 shrink-0" />
                         <div className="flex-1 py-1 space-y-3">
-                            <div className="h-4 bg-gray-200 rounded w-1/4" />
-                            <div className="h-5.5 bg-gray-200 rounded w-3/4" />
-                            <div className="h-4 bg-gray-200 rounded w-1/2" />
+                            <div className="h-4 bg-gray-200 dark:bg-zinc-800 rounded w-1/4" />
+                            <div className="h-5.5 bg-gray-200 dark:bg-zinc-800 rounded w-3/4" />
+                            <div className="h-4 bg-gray-200 dark:bg-zinc-800 rounded w-1/2" />
                         </div>
                     </div>
                 ))}
@@ -176,8 +220,8 @@ export default function Discover() {
             <>
                 {/* NO RESULTS EMPTY STATE */}
                 {businesses.length === 0 && query && (
-                    <div className="mt-8 text-center py-16 px-6 bg-white border border-gray-100 rounded-3xl shadow-sm max-w-md mx-auto">
-                        <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4 text-emerald-600 border border-emerald-100/30">
+                    <div className="mt-8 text-center py-16 px-6 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-3xl shadow-sm max-w-md mx-auto">
+                        <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-950/20 rounded-full flex items-center justify-center mx-auto mb-4 text-emerald-600 dark:text-emerald-400 border border-emerald-100/30 dark:border-emerald-900/30">
                             <svg
                                 className="w-8 h-8"
                                 fill="none"
@@ -192,10 +236,10 @@ export default function Discover() {
                                 />
                             </svg>
                         </div>
-                        <h3 className="text-lg font-bold text-gray-800">
+                        <h3 className="text-lg font-bold text-gray-800 dark:text-white">
                             No businesses found
                         </h3>
-                        <p className="text-gray-500 mt-2 text-sm max-w-xs mx-auto">
+                        <p className="text-gray-500 dark:text-zinc-400 mt-2 text-sm max-w-xs mx-auto">
                             We couldn't find any business matching "{query}". Try checking your spelling or searching for another keyword.
                         </p>
                     </div>
@@ -210,10 +254,13 @@ export default function Discover() {
                             className="
                             group
                             bg-white
+                            dark:bg-zinc-900
                             rounded-3xl
                             border
                             border-gray-100
+                            dark:border-zinc-800/80
                             hover:border-emerald-200
+                            dark:hover:border-emerald-800
                             shadow-sm
                             hover:shadow-md
                             hover:shadow-emerald-600/5
@@ -236,6 +283,7 @@ export default function Discover() {
                                     rounded-2xl
                                     overflow-hidden
                                     bg-gray-100
+                                    dark:bg-zinc-800
                                     flex
                                     items-center
                                     justify-center
@@ -248,7 +296,7 @@ export default function Discover() {
                                             className="w-full h-full object-cover"
                                         />
                                     ) : (
-                                        <div className="text-gray-400 text-xs">
+                                        <div className="text-gray-400 dark:text-zinc-500 text-xs">
                                             No Logo
                                         </div>
                                     )}
@@ -269,12 +317,14 @@ export default function Discover() {
                                             text-lg sm:text-xl
                                             font-semibold
                                             text-gray-900
+                                            dark:text-white
                                             truncate
                                             ">
                                                 {business.name}
                                             </h2>
                                             <p className="
                                             text-gray-500
+                                            dark:text-zinc-400
                                             text-sm
                                             mt-1
                                             ">
@@ -283,6 +333,7 @@ export default function Discover() {
                                             {business.address_name && (
                                                 <p className="
                                                 text-gray-400
+                                                dark:text-zinc-500
                                                 text-xs
                                                 mt-1
                                                 truncate
@@ -294,9 +345,12 @@ export default function Discover() {
 
                                         <span className="
                                             bg-emerald-50
+                                            dark:bg-emerald-950/20
                                             text-emerald-700
+                                            dark:text-emerald-400
                                             border
                                             border-emerald-100/50
+                                            dark:border-emerald-900/30
                                             text-[10px] sm:text-xs
                                             font-semibold
                                             px-2.5
@@ -311,7 +365,7 @@ export default function Discover() {
                                 </div>
 
                                 {/* MICRO-INTERACTION HOVER ARROW BUTTON */}
-                                <div className="hidden sm:flex w-10 h-10 rounded-full bg-gray-50 group-hover:bg-emerald-600 items-center justify-center shrink-0 border border-gray-100 group-hover:border-emerald-600 transition-all duration-300 shadow-sm group-hover:shadow-lg group-hover:shadow-emerald-600/25">
+                                <div className="hidden sm:flex w-10 h-10 rounded-full bg-gray-50 dark:bg-zinc-800 group-hover:bg-emerald-600 items-center justify-center shrink-0 border border-gray-100 dark:border-zinc-700 group-hover:border-emerald-600 dark:group-hover:border-emerald-600 transition-all duration-300 shadow-sm group-hover:shadow-lg group-hover:shadow-emerald-600/25">
                                     <svg
                                         className="w-5 h-5 text-gray-400 group-hover:text-white transform group-hover:translate-x-0.5 transition-all duration-300"
                                         fill="none"
