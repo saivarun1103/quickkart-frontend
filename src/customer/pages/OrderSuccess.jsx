@@ -269,7 +269,11 @@ export default function OrderSuccess() {
             <div 
               className="absolute left-8 top-5 h-[3px] bg-green-500 z-0 transition-all duration-[1000ms] ease-out" 
               style={{
-                width: order.status === "completed" ? "calc(100% - 64px)" : order.status === "ready" ? "50%" : "0%"
+                width: order.status === "completed" 
+                  ? "calc(100% - 64px)" 
+                  : order.status === "ready" 
+                  ? "calc((100% - 64px) * 0.666)" 
+                  : "calc((100% - 64px) * 0.333)"
               }}
             />
 
