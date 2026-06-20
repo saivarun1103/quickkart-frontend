@@ -5,7 +5,7 @@ import {
     Outlet,
     useLocation
 } from "react-router-dom";
-// const BASE_URL = "https://quickkart-3f8h.onrender.com";
+import { API_BASE } from "../../config";
 
 export default function AdminLayout() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -16,7 +16,7 @@ export default function AdminLayout() {
 
     useEffect(() => {
 
-    fetch(`/admin/me`, {  //${BASE_URL}/admin/me
+    fetch(`${API_BASE}/api/admin/me`, {
 
             headers: {
                 Authorization:
