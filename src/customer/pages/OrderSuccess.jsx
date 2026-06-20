@@ -8,6 +8,7 @@ import WhatsappIcon from "../../admin/components/Fonts/WhatsappIcon";
 import DownloadIcon from "../../admin/components/Fonts/DownloadIcon";
 import { domToPng } from "modern-screenshot";
 import { useRef } from "react";
+import logoImg from "../../assets/logo.png";
 
 export default function OrderSuccess() {
   const [searchParams] = useSearchParams();
@@ -24,6 +25,26 @@ export default function OrderSuccess() {
     );
   };
 
+  const getStepState = (stepNumber) => {
+    // stepNumber: 1 = Confirmed, 2 = Preparing, 3 = Ready, 4 = Completed
+    const status = order?.status;
+
+    if (status === "completed") {
+      return "completed";
+    }
+
+    if (status === "ready") {
+      if (stepNumber < 3) return "completed";
+      if (stepNumber === 3) return "active";
+      return "upcoming";
+    }
+
+    // pending / preparing
+    if (stepNumber === 1) return "completed";
+    if (stepNumber === 2) return "active";
+    return "upcoming";
+  };
+
   useEffect(() => {
     const token = location.search.replace("?", "");
 
@@ -32,17 +53,36 @@ export default function OrderSuccess() {
       return;
     }
 
-    fetch(`${import.meta.env.VITE_API_URL}/public/order/${token}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setOrder(data.order);
-      })
-      .catch((err) => {
-        console.error(err);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    let intervalId;
+
+    const fetchOrder = () => {
+      fetch(`${import.meta.env.VITE_API_URL}/public/order/${token}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.order) {
+            setOrder(data.order);
+            if (data.order.status === "completed" && intervalId) {
+              clearInterval(intervalId);
+            }
+          }
+        })
+        .catch((err) => {
+          console.error("Error fetching order:", err);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    };
+
+    fetchOrder();
+
+    intervalId = setInterval(fetchOrder, 5000);
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
   }, [location.search]);
 
   const saveBill = async () => {
@@ -128,6 +168,21 @@ export default function OrderSuccess() {
           space-y-5
         "
       >
+        {/* GoSkipDQ Branding at the top */}
+        <div className="flex items-center justify-center gap-1.5 border-b border-gray-100 pb-4">
+          <div className="w-8 h-8 rounded-xl bg-white border border-emerald-100/60 flex items-center justify-center shadow-sm">
+            <img
+              src={logoImg}
+              alt="GoSkipDQ Logo"
+              className="w-5.5 h-5.5 object-contain"
+            />
+          </div>
+          <span className="text-lg font-black italic tracking-tighter py-1 leading-normal">
+            <span className="text-emerald-500">Go</span>
+            <span className="text-black">Skip</span>
+            <span className="text-emerald-500">DQ</span>
+          </span>
+        </div>
         
         {/* Success Header */}
         <div className="text-center">
@@ -157,6 +212,140 @@ export default function OrderSuccess() {
           <p className="text-gray-500 text-base sm:text-sm mt-2 font-medium">
             Your order has been confirmed
           </p>
+        </div>
+
+        {/* Live Order Status Tracker */}
+        <div className="border border-green-500/10 rounded-[28px] bg-[#eef8f0] p-5 shadow-sm space-y-4">
+          <style>{`
+            @keyframes heartbeat {
+              0%, 100% { transform: scale(1); }
+              50% { transform: scale(1.15); }
+            }
+            .animate-heartbeat {
+              animation: heartbeat 1.2s ease-in-out infinite;
+            }
+          `}</style>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                {order.status !== "completed" && (
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                )}
+                <span className={`relative inline-flex rounded-full h-2 w-2 ${order.status === "completed" ? "bg-zinc-400" : "bg-green-500"}`}></span>
+              </span>
+              <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                Live Order Status
+              </span>
+            </div>
+            <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
+              order.status === "completed"
+                ? "bg-zinc-100 text-zinc-800"
+                : order.status === "ready"
+                ? "bg-green-100 text-green-800 animate-pulse"
+                : "bg-amber-100 text-amber-800"
+            }`}>
+              {order.status === "completed" ? "Completed" : order.status === "ready" ? "Ready to Pick" : "Preparing"}
+            </span>
+          </div>
+
+          <div className="text-center py-1">
+            <h3 className="text-lg font-black text-gray-800">
+              {order.status === "completed" && "Order Completed"}
+              {order.status === "ready" && "Your order is ready to pick!"}
+              {(order.status === "pending" || order.status === "preparing") && "Your order is getting ready"}
+            </h3>
+            <p className="text-xs text-gray-500 mt-1">
+              {order.status === "completed" && "Thank you for ordering with us!"}
+              {order.status === "ready" && "Show the PIN at the counter to collect your items."}
+              {(order.status === "pending" || order.status === "preparing") && "We are packing your items."}
+            </p>
+          </div>
+
+          {/* Visual steps timeline */}
+          <div className="relative px-4">
+            {/* Line behind */}
+            <div className="absolute left-8 right-8 top-5 h-[3px] bg-gray-100 z-0" />
+            {/* Active Line indicator */}
+            <div 
+              className="absolute left-8 top-5 h-[3px] bg-green-500 z-0 transition-all duration-[1000ms] ease-out" 
+              style={{
+                width: order.status === "completed" ? "calc(100% - 64px)" : order.status === "ready" ? "50%" : "0%"
+              }}
+            />
+
+            {/* Steps row */}
+            <div className="flex justify-between items-start text-center">
+              {/* Step 1: Confirmed */}
+              <div className="flex flex-col items-center w-16 z-10">
+                <div className="h-10 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                    ✓
+                  </div>
+                </div>
+                <span className="text-[10px] font-bold text-green-600 mt-1.5">Confirmed</span>
+              </div>
+
+              {/* Step 2: Preparing */}
+              <div className="flex flex-col items-center w-16 z-10">
+                <div className="h-10 flex items-center justify-center">
+                  <div className={`rounded-full flex items-center justify-center font-bold text-sm shadow-sm transition-all duration-500 ${
+                    getStepState(2) === "active"
+                      ? "w-10 h-10 bg-green-500 text-white animate-heartbeat shadow-md shadow-green-500/20"
+                      : getStepState(2) === "completed"
+                      ? "w-8 h-8 bg-green-500 text-white"
+                      : "w-8 h-8 bg-gray-100 text-gray-400"
+                  }`}>
+                    📦
+                  </div>
+                </div>
+                <span className={`text-[10px] font-bold mt-1.5 ${
+                  getStepState(2) !== "upcoming" ? "text-green-600 font-extrabold" : "text-gray-400"
+                }`}>
+                  Preparing
+                </span>
+              </div>
+
+              {/* Step 3: Ready */}
+              <div className="flex flex-col items-center w-16 z-10">
+                <div className="h-10 flex items-center justify-center">
+                  <div className={`rounded-full flex items-center justify-center font-bold text-sm shadow-sm transition-all duration-500 ${
+                    getStepState(3) === "active"
+                      ? "w-10 h-10 bg-green-500 text-white animate-heartbeat shadow-md shadow-green-500/20"
+                      : getStepState(3) === "completed"
+                      ? "w-8 h-8 bg-green-500 text-white"
+                      : "w-8 h-8 bg-gray-100 text-gray-400"
+                  }`}>
+                    🛍️
+                  </div>
+                </div>
+                <span className={`text-[10px] font-bold mt-1.5 ${
+                  getStepState(3) !== "upcoming" ? "text-green-600 font-extrabold" : "text-gray-400"
+                }`}>
+                  Ready
+                </span>
+              </div>
+
+              {/* Step 4: Completed */}
+              <div className="flex flex-col items-center w-16 z-10">
+                <div className="h-10 flex items-center justify-center">
+                  <div className={`rounded-full flex items-center justify-center font-bold text-sm shadow-sm transition-all duration-500 ${
+                    getStepState(4) === "active"
+                      ? "w-10 h-10 bg-green-500 text-white animate-heartbeat shadow-md shadow-green-500/20"
+                      : getStepState(4) === "completed"
+                      ? "w-8 h-8 bg-green-500 text-white"
+                      : "w-8 h-8 bg-gray-100 text-gray-400"
+                  }`}>
+                    🎉
+                  </div>
+                </div>
+                <span className={`text-[10px] font-bold mt-1.5 ${
+                  getStepState(4) !== "upcoming" ? "text-green-600 font-extrabold" : "text-gray-400"
+                }`}>
+                  Done
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Status Block Card */}
