@@ -1,4 +1,4 @@
-// import { motion } from "framer-motion";
+import { motion } from "framer-motion";
 
 export default function FoodCard({
   item,
@@ -10,7 +10,7 @@ export default function FoodCard({
   index
 }) {
   return (
-    <div
+    <motion.div
       className="
         bg-[#ffffff]
         rounded-3xl
@@ -279,6 +279,6 @@ export default function FoodCard({
         </div>
 
       </div>
-    </div>
+    </motion.div>
   );
 }
