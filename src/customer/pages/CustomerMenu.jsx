@@ -80,6 +80,9 @@ export default function CustomerMenu(){
   const [checkoutError, setCheckoutError] =
     useState(null)
 
+  const [isVerifyingPayment, setIsVerifyingPayment] =
+    useState(false)
+
   const [
     isCheckoutLoading,
     setIsCheckoutLoading
@@ -293,10 +296,10 @@ export default function CustomerMenu(){
   }
 
   //checkout
-  async function checkout() {
+  async function checkout(isSubmittingFromPopup = false) {
 
     if (
-      isCheckoutLoading
+      isCheckoutLoading && !isSubmittingFromPopup
     ) return;
 
     if (cart.length === 0) {
@@ -393,6 +396,7 @@ export default function CustomerMenu(){
         if (response.status === 401) {
 
           setSessionExpired(true);
+          setIsCheckoutLoading(false);
           return;
         }
 
@@ -439,6 +443,7 @@ export default function CustomerMenu(){
             );
           }
 
+          setIsCheckoutLoading(false);
           return;
         }
 
@@ -452,11 +457,13 @@ export default function CustomerMenu(){
             data?.detail ||
             "Business is closed"
           );
+          setIsCheckoutLoading(false);
           return;
         }
 
         alert("Checkout failed");
 
+        setIsCheckoutLoading(false);
         return;
       }
 
@@ -497,56 +504,65 @@ export default function CustomerMenu(){
           response
         ) {
 
+          setIsVerifyingPayment(true);
+
           // -------------------------
           // VERIFY PAYMENT
           // -------------------------
 
-          const verifyRes = await fetch(
+          try {
+            const verifyRes = await fetch(
 
-            `${API_BASE}/api/verify-payment`, // change here to
+              `${API_BASE}/api/verify-payment`, // change here to
 
-            {
+              {
 
-              method: "POST",
+                method: "POST",
 
-              headers: {
+                headers: {
 
-                "Content-Type":
-                  "application/json"
-              },
+                  "Content-Type":
+                    "application/json"
+                },
 
-              body: JSON.stringify({
+                body: JSON.stringify({
 
-                order_id:
-                  data.order_id,
+                  order_id:
+                    data.order_id,
 
-                razorpay_order_id:
-                  response.razorpay_order_id,
+                  razorpay_order_id:
+                    response.razorpay_order_id,
 
-                razorpay_payment_id:
-                  response.razorpay_payment_id,
+                  razorpay_payment_id:
+                    response.razorpay_payment_id,
 
-                razorpay_signature:
-                  response.razorpay_signature
-              })
+                  razorpay_signature:
+                    response.razorpay_signature
+                })
+              }
+            );
+
+            const verifyData =
+              await verifyRes.json();
+
+            // -------------------------
+            // SUCCESS REDIRECT
+            // -------------------------
+
+            if (verifyData.success) {
+
+              window.location.href =
+              `/order-success?${verifyData.access_token}`;
+
+            } else {
+
+              alert("Payment verification failed");
+              setIsVerifyingPayment(false);
             }
-          );
-
-          const verifyData =
-            await verifyRes.json();
-
-          // -------------------------
-          // SUCCESS REDIRECT
-          // -------------------------
-
-          if (verifyData.success) {
-
-            window.location.href =
-            `/order-success?${verifyData.access_token}`;
-
-          } else {
-
+          } catch (error) {
+            console.error(error);
             alert("Payment verification failed");
+            setIsVerifyingPayment(false);
           }
         },
 
@@ -560,12 +576,14 @@ export default function CustomerMenu(){
         new window.Razorpay(options);
 
       razorpay.open();
+      setIsCheckoutLoading(false);
 
     } catch (err) {
 
       console.error(err);
 
       alert("Checkout failed");
+      setIsCheckoutLoading(false);
     }
   }
 
@@ -772,6 +790,8 @@ export default function CustomerMenu(){
         return
       }
 
+      setIsCheckoutLoading(true)
+
       try {
 
         const response =
@@ -807,7 +827,7 @@ export default function CustomerMenu(){
 
           setShowPhonePopup(false)
 
-          checkout()
+          await checkout(true)
 
         }
 
@@ -822,6 +842,8 @@ export default function CustomerMenu(){
           setShowPhonePopup(false)
 
           setShowNamePopup(true)
+
+          setIsCheckoutLoading(false)
         }
 
       } catch (error) {
@@ -831,6 +853,7 @@ export default function CustomerMenu(){
         alert(
           "Failed to verify phone"
         )
+        setIsCheckoutLoading(false)
       }
   }
 
@@ -846,6 +869,8 @@ export default function CustomerMenu(){
         return
       }
 
+      setIsCheckoutLoading(true)
+
       // -------------------------
       // PUBLIC FLOW
       // -------------------------
@@ -854,7 +879,7 @@ export default function CustomerMenu(){
 
         setShowNamePopup(false)
 
-        checkout()
+        await checkout(true)
 
         return
       }
@@ -891,7 +916,7 @@ export default function CustomerMenu(){
 
         setShowNamePopup(false)
 
-        checkout()
+        await checkout(true)
 
       } catch (error) {
 
@@ -900,6 +925,7 @@ export default function CustomerMenu(){
         alert(
           "Failed to save name"
         )
+        setIsCheckoutLoading(false)
       }
   }
 
@@ -1551,6 +1577,28 @@ export default function CustomerMenu(){
                 })}
             </motion.div>
         </div>
+        {isVerifyingPayment && (
+          <div className="fixed inset-0 z-[200] bg-black/75 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center select-none">
+            <div className="relative flex items-center justify-center w-24 h-24 mb-6">
+              {/* Outer spinning ring */}
+              <div className="absolute inset-0 rounded-full border-4 border-emerald-500/20 border-t-emerald-500 animate-spin" />
+              {/* Inner pulsing logo container */}
+              <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-emerald-500/30 flex items-center justify-center shadow-lg shadow-emerald-500/10">
+                <img
+                  src={logoImg}
+                  alt="GoSkipDQ Logo"
+                  className="w-10 h-10 object-contain animate-pulse"
+                />
+              </div>
+            </div>
+            <h2 className="text-2xl font-black text-white tracking-tight mb-2">
+              Verifying Payment
+            </h2>
+            <p className="text-zinc-400 text-sm max-w-xs leading-relaxed">
+              Please do not close this window, refresh the page, or click the back button.
+            </p>
+          </div>
+        )}
     </div>
   );
     // return (

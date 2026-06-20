@@ -493,12 +493,15 @@ export default function CartDrawer({
 
                     setShowPhonePopup(false)
                   }}
+                  disabled={isCheckoutLoading}
                   className="
                     flex-1
                     py-4
                     rounded-2xl
                     bg-gray-100
                     font-bold
+                    disabled:opacity-50
+                    disabled:cursor-not-allowed
                   "
                 >
                   Cancel
@@ -506,6 +509,7 @@ export default function CartDrawer({
 
                 <button
                   onClick={continueWithPhone}
+                  disabled={isCheckoutLoading}
                   className="
                     flex-1
                     py-4
@@ -513,9 +517,22 @@ export default function CartDrawer({
                     bg-black
                     text-white
                     font-bold
+                    disabled:opacity-75
+                    disabled:cursor-not-allowed
+                    flex
+                    items-center
+                    justify-center
+                    gap-2
                   "
                 >
-                  Continue
+                  {isCheckoutLoading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Please wait...</span>
+                    </>
+                  ) : (
+                    "Continue"
+                  )}
                 </button>
 
               </div>
@@ -592,12 +609,15 @@ export default function CartDrawer({
 
                 <button
                   onClick={closeNamePopup}
+                  disabled={isCheckoutLoading}
                   className="
                     flex-1
                     py-4
                     rounded-2xl
                     bg-gray-100
                     font-bold
+                    disabled:opacity-50
+                    disabled:cursor-not-allowed
                   "
                 >
                   Cancel
@@ -605,6 +625,7 @@ export default function CartDrawer({
 
                 <button
                   onClick={saveNameAndCheckout}
+                  disabled={isCheckoutLoading}
                   className="
                     flex-1
                     py-4
@@ -612,9 +633,22 @@ export default function CartDrawer({
                     bg-black
                     text-white
                     font-bold
+                    disabled:opacity-75
+                    disabled:cursor-not-allowed
+                    flex
+                    items-center
+                    justify-center
+                    gap-2
                   "
                 >
-                  Continue
+                  {isCheckoutLoading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Please wait...</span>
+                    </>
+                  ) : (
+                    "Continue"
+                  )}
                 </button>
 
               </div>
