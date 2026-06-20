@@ -133,6 +133,17 @@ export default function AdminLayout() {
                     to="/admin/dashboard/settings"
                     setSidebarOpen={setSidebarOpen}
                 />
+
+                {business?.role === "FOUNDER" && (
+                    <>
+                        <div className="space-y-2"></div>
+                        <SidebarButton
+                            title="👑 Founder Portal"
+                            to="/founder"
+                            setSidebarOpen={setSidebarOpen}
+                        />
+                    </>
+                )}
             </div>
 
             {sidebarOpen && (

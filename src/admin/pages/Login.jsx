@@ -14,11 +14,28 @@ export default function Login() {
     const [show, setShow] = useState(false);
 
     useEffect(() => {
-        const token =
-            localStorage.getItem("token");
+        const token = localStorage.getItem("token");
 
         if (token) {
-            navigate("/admin/dashboard");
+            fetch(`${API_BASE}/api/admin/me`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            .then((res) => {
+                if (res.ok) return res.json();
+                throw new Error("Invalid token");
+            })
+            .then((data) => {
+                if (data && data.role === "FOUNDER") {
+                    navigate("/founder");
+                } else {
+                    navigate("/admin/dashboard");
+                }
+            })
+            .catch(() => {
+                localStorage.removeItem("token");
+            });
         }
     }, []);
 
@@ -40,6 +57,23 @@ export default function Login() {
 
         if (response.ok) {
             localStorage.setItem("token", data.access_token);
+
+            try {
+                const meRes = await fetch(`${API_BASE}/api/admin/me`, {
+                    headers: {
+                        Authorization: `Bearer ${data.access_token}`
+                    }
+                });
+                if (meRes.ok) {
+                    const meData = await meRes.json();
+                    if (meData.role === "FOUNDER") {
+                        navigate("/founder");
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to verify role after login:", err);
+            }
 
             navigate("/admin/dashboard");
         } else {

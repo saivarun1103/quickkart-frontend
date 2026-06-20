@@ -4,6 +4,8 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./admin/pages/Login";
 import Register from "./admin/pages/Register";
 import ProtectedRoute from "./components/ProtectedRoute";
+import FounderProtectedRoute from "./components/FounderProtectedRoute";
+import FounderDashboard from "./founder/pages/FounderDashboard";
 import CustomerMenu from "./customer/pages/CustomerMenu";
 import MenuPage from "./admin/pages/MenuPage";
 import OrdersPage from "./admin/pages/OrdersPage";
@@ -62,6 +64,16 @@ export default function App() {
         <Route
             path="/secretregister"
             element={<Register />}
+        />
+
+        {/* FOUNDER DASHBOARD */}
+        <Route
+            path="/founder"
+            element={
+                <FounderProtectedRoute>
+                    <FounderDashboard />
+                </FounderProtectedRoute>
+            }
         />
 
         {/* ADMIN DASHBOARD */}
