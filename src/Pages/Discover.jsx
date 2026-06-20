@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { API_BASE } from "../config";
 import logoImg from "../assets/logo.png";
@@ -240,7 +240,7 @@ export default function Discover() {
                             No businesses found
                         </h3>
                         <p className="text-gray-500 dark:text-zinc-400 mt-2 text-sm max-w-xs mx-auto">
-                            We couldn't find any business matching "{query}". Try checking your spelling or searching for another keyword.
+                            We couldn&apos;t find any business matching &quot;{query}&quot;. Try checking your spelling or searching for another keyword.
                         </p>
                     </div>
                 )}
@@ -386,6 +386,20 @@ export default function Discover() {
                 </div>
             </>
         )}
+        {/* Footer with Privacy Policy link */}
+        <footer className="mt-16 border-t border-gray-100 dark:border-zinc-800 pt-8 pb-4 text-center">
+          <p className="text-xs text-gray-400 dark:text-zinc-500">
+            © {new Date().getFullYear()} GoSkipDQ. All rights reserved.
+          </p>
+          <div className="mt-2 flex justify-center gap-4">
+            <Link 
+              to="/privacy-policy" 
+              className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 hover:underline transition-all"
+            >
+              Privacy Policy
+            </Link>
+          </div>
+        </footer>
 
         </div>
 

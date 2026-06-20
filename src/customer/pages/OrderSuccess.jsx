@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import VerifiedIcon from "../../admin/components/Fonts/VerifiedIcon";
 import LocationIcon from "../../admin/components/Fonts/LocationIcon";
 import ClipboardIcon from "../../admin/components/Fonts/ClipBoard";
@@ -11,7 +11,7 @@ import { useRef } from "react";
 import logoImg from "../../assets/logo.png";
 
 export default function OrderSuccess() {
-  const [searchParams] = useSearchParams();
+
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const location = useLocation();

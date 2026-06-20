@@ -128,7 +128,7 @@ export default function PrivacyPolicy() {
           </p>
 
           <p className="font-medium mt-2">
-            Email: varun.11n03@gmail.com
+            Email: goskipdq@gmail.com
           </p>
         </section>
 
@@ -144,7 +144,7 @@ export default function PrivacyPolicy() {
 
           <div className="mt-3">
             <p>
-              <strong>Email:</strong> varun.11n03@gmail.com
+              <strong>Email:</strong> goskipdq@gmail.com
             </p>
             <p>
               <strong>Website:</strong> https://goskipdq.com
