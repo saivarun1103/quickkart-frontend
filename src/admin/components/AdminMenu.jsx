@@ -66,6 +66,16 @@ export default function AdminMenu() {
         setCustomCategory
     ] = useState(false);
 
+    const [
+        editCustomCategory,
+        setEditCustomCategory
+    ] = useState(false);
+
+    const [
+        isSaving,
+        setIsSaving
+    ] = useState(false);
+
 
     // 🔥 RESET FORM
     const resetForm = () => {
@@ -186,222 +196,246 @@ export default function AdminMenu() {
 
     // 🔥 ADD ITEM
     const handleSubmit = async () => {
+        if (isSaving) return;
+        setIsSaving(true);
+        try {
+            const formData = new FormData();
 
-        const formData = new FormData();
+            formData.append("name", name);
 
-        formData.append("name", name);
+            formData.append("price", price);
 
-        formData.append("price", price);
+            formData.append("description", description);
 
-        formData.append("description", description);
+            formData.append("category", category);
 
-        formData.append("category", category);
+            formData.append("dietary_type", dietaryType);
+            if (file) {
 
-        formData.append("dietary_type", dietaryType);
-        if (file) {
-
-            formData.append(
-                "file",
-                file
-            );
-        }
-
-        const response = await fetch(
-            `${API_BASE}/api/admin/menu`, //`${BASE_URL}/admin/menu`
-            {
-                method: "POST",
-
-                headers: {
-                    Authorization:
-                        `Bearer ${
-                            localStorage.getItem(
-                                "token"
-                            )
-                        }`
-                },
-
-                body: formData
+                formData.append(
+                    "file",
+                    file
+                );
             }
-        );
 
-        if (response.status === 401) {
+            const response = await fetch(
+                `${API_BASE}/api/admin/menu`, //`${BASE_URL}/admin/menu`
+                {
+                    method: "POST",
 
-            handleUnauthorized();
+                    headers: {
+                        Authorization:
+                            `Bearer ${
+                                localStorage.getItem(
+                                    "token"
+                                )
+                            }`
+                    },
 
-            return;
+                    body: formData
+                }
+            );
+
+            if (response.status === 401) {
+
+                handleUnauthorized();
+
+                return;
+            }
+
+            setToast(
+                "Item added successfully!"
+            );
+
+            setTimeout(() => {
+
+                setToast("");
+
+            }, 2000);
+
+            resetForm();
+
+            setIsAddOpen(false);
+
+            fetchItems();
+        } catch (error) {
+            console.error("Failed to add item:", error);
+            alert("Error adding item. Please try again.");
+        } finally {
+            setIsSaving(false);
         }
-
-        setToast(
-            "Item added successfully!"
-        );
-
-        setTimeout(() => {
-
-            setToast("");
-
-        }, 2000);
-
-        resetForm();
-
-        setIsAddOpen(false);
-
-        fetchItems();
     };
 
 
     // 🔥 UPDATE ITEM
     const updateItem = async () => {
+        if (isSaving) return;
+        setIsSaving(true);
+        try {
+            const formData = new FormData();
 
-        const formData = new FormData();
-
-        // ALWAYS SEND UPDATED VALUES
-        formData.append(
-            "name",
-            editingItem.name || ""
-        );
-
-        formData.append(
-            "price",
-            editingItem.price || ""
-        );
-
-        formData.append(
-            "description",
-            editingItem.description || ""
-        );
-
-        formData.append(
-            "category",
-            editingItem.category || ""
-        );
-
-        formData.append(
-            "dietary_type",
-            editingItem.dietary_type || ""
-        );
-
-        // OPTIONAL IMAGE
-        if (editingItem.file) {
+            // ALWAYS SEND UPDATED VALUES
+            formData.append(
+                "name",
+                editingItem.name || ""
+            );
 
             formData.append(
-                "file",
-                editingItem.file
+                "price",
+                editingItem.price || ""
             );
-        }
 
-        const response = await fetch(
-            `${API_BASE}/api/admin/menu/${editingItem.id}`,  //${BASE_URL}/admin/menu/${editingItem.id}
-            {
-                method: "PUT",
+            formData.append(
+                "description",
+                editingItem.description || ""
+            );
 
-                headers: {
-                    Authorization:
-                        `Bearer ${
-                            localStorage.getItem(
-                                "token"
-                            )
-                        }`
-                },
+            formData.append(
+                "category",
+                editingItem.category || ""
+            );
 
-                body: formData
+            formData.append(
+                "dietary_type",
+                editingItem.dietary_type || ""
+            );
+
+            // OPTIONAL IMAGE
+            if (editingItem.file) {
+
+                formData.append(
+                    "file",
+                    editingItem.file
+                );
             }
-        );
 
-        if (response.status === 401) {
+            const response = await fetch(
+                `${API_BASE}/api/admin/menu/${editingItem.id}`,  //${BASE_URL}/admin/menu/${editingItem.id}
+                {
+                    method: "PUT",
 
-            handleUnauthorized();
+                    headers: {
+                        Authorization:
+                            `Bearer ${
+                                localStorage.getItem(
+                                    "token"
+                                )
+                            }`
+                    },
 
-            return;
+                    body: formData
+                }
+            );
+
+            if (response.status === 401) {
+
+                handleUnauthorized();
+
+                return;
+            }
+
+            setToast("Item updated!");
+
+            setTimeout(() => {
+
+                setToast("");
+
+            }, 2000);
+
+            setEditingItem(null);
+
+            setPreview(null);
+
+            fetchItems();
+        } catch (error) {
+            console.error("Failed to update item:", error);
+            alert("Error updating item. Please try again.");
+        } finally {
+            setIsSaving(false);
         }
-
-        setToast("Item updated!");
-
-        setTimeout(() => {
-
-            setToast("");
-
-        }, 2000);
-
-        setEditingItem(null);
-
-        setPreview(null);
-
-        fetchItems();
     };
 
 
     // 🔥 CONFIRM ACTION
     const handleConfirm = async () => {
+        if (isSaving) return;
+        setIsSaving(true);
+        try {
+            let response;
 
-        let response;
+            // DELETE
+            if (
+                confirmAction.type ===
+                "delete"
+            ) {
 
-        // DELETE
-        if (
-            confirmAction.type ===
-            "delete"
-        ) {
+                response = await fetch(
+                    `${API_BASE}/api/admin/menu/${confirmAction.id}`, //${BASE_URL}/admin/menu/${confirmAction.id}
+                    {
+                        method: "DELETE",
 
-            response = await fetch(
-                `${API_BASE}/api/admin/menu/${confirmAction.id}`, //${BASE_URL}/admin/menu/${confirmAction.id}
-                {
-                    method: "DELETE",
-
-                    headers: {
-                        Authorization:
-                            `Bearer ${
-                                localStorage.getItem(
-                                    "token"
-                                )
-                            }`
+                        headers: {
+                            Authorization:
+                                `Bearer ${
+                                    localStorage.getItem(
+                                        "token"
+                                    )
+                                }`
+                        }
                     }
-                }
-            );
-        }
+                );
+            }
 
-        // TOGGLE
-        if (
-            confirmAction.type ===
-            "toggle"
-        ) {
+            // TOGGLE
+            if (
+                confirmAction.type ===
+                "toggle"
+            ) {
 
-            response = await fetch(
-                `${API_BASE}/api/admin/menu/${confirmAction.id}/toggle`,  //${BASE_URL}/admin/menu/${confirmAction.id}/toggle
-                {
-                    method: "PATCH",
+                response = await fetch(
+                    `${API_BASE}/api/admin/menu/${confirmAction.id}/toggle`,  //${BASE_URL}/admin/menu/${confirmAction.id}/toggle
+                    {
+                        method: "PATCH",
 
-                    headers: {
-                        Authorization:
-                            `Bearer ${
-                                localStorage.getItem(
-                                    "token"
-                                )
-                            }`
+                        headers: {
+                            Authorization:
+                                `Bearer ${
+                                    localStorage.getItem(
+                                        "token"
+                                    )
+                                }`
+                        }
                     }
-                }
-            );
+                );
+            }
+
+            if (
+                response &&
+                response.status === 401
+            ) {
+
+                handleUnauthorized();
+
+                return;
+            }
+
+            setToast("Action completed");
+
+            setTimeout(() => {
+
+                setToast("");
+
+            }, 2000);
+
+            setConfirmAction(null);
+
+            fetchItems();
+        } catch (error) {
+            console.error("Failed to complete action:", error);
+            alert("Error performing action. Please try again.");
+        } finally {
+            setIsSaving(false);
         }
-
-        if (
-            response &&
-            response.status === 401
-        ) {
-
-            handleUnauthorized();
-
-            return;
-        }
-
-        setToast("Action completed");
-
-        setTimeout(() => {
-
-            setToast("");
-
-        }, 2000);
-
-        setConfirmAction(null);
-
-        fetchItems();
     };
 
 
@@ -752,6 +786,8 @@ export default function AdminMenu() {
                                                                 item.image_url ||
                                                                 null
                                                             );
+
+                                                            setEditCustomCategory(false);
                                                         }}
 
                                                         className="
@@ -1200,8 +1236,8 @@ export default function AdminMenu() {
                         {/* BUTTON */}
                         <button
                             onClick={handleSubmit}
-
-                            className="
+                            disabled={isSaving}
+                            className={`
                                 w-full
                                 h-14
 
@@ -1215,9 +1251,17 @@ export default function AdminMenu() {
 
                                 transition-all
                                 duration-300
-                            "
+                                ${isSaving ? "opacity-75 cursor-not-allowed" : ""}
+                            `}
                         >
-                            Add Item
+                            {isSaving ? (
+                                <span className="btn-loading-content">
+                                    <span className="spinner"></span>
+                                    Adding Item...
+                                </span>
+                            ) : (
+                                "Add Item"
+                            )}
                         </button>
 
                     </div>
@@ -1391,7 +1435,7 @@ export default function AdminMenu() {
 
                         {/* category input select*/}
                         <select
-                            value={category}
+                            value={editingItem.category || ""}
 
                             onChange={(e) => {
 
@@ -1400,22 +1444,26 @@ export default function AdminMenu() {
                                     "__custom__"
                                 ) {
 
-                                    setCustomCategory(
+                                    setEditCustomCategory(
                                         true
                                     );
 
-                                    setCategory("");
+                                    setEditingItem({
+                                        ...editingItem,
+                                        category: ""
+                                    });
 
                                     return;
                                 }
 
-                                setCustomCategory(
+                                setEditCustomCategory(
                                     false
                                 );
 
-                                setCategory(
-                                    e.target.value
-                                );
+                                setEditingItem({
+                                    ...editingItem,
+                                    category: e.target.value
+                                });
                             }}
 
                             className="
@@ -1461,15 +1509,16 @@ export default function AdminMenu() {
                         </select>
 
                         {/* Custom Category */}
-                        {customCategory && (
+                        {editCustomCategory && (
 
                             <input
-                                value={category}
+                                value={editingItem.category || ""}
 
                                 onChange={(e) =>
-                                    setCategory(
-                                        e.target.value
-                                    )
+                                    setEditingItem({
+                                        ...editingItem,
+                                        category: e.target.value
+                                    })
                                 }
 
                                 placeholder="
@@ -1614,8 +1663,8 @@ export default function AdminMenu() {
                         {/* UPDATE */}
                         <button
                             onClick={updateItem}
-
-                            className="
+                            disabled={isSaving}
+                            className={`
                                 w-full
                                 h-14
 
@@ -1628,9 +1677,17 @@ export default function AdminMenu() {
                                 font-semibold
 
                                 transition-all
-                            "
+                                ${isSaving ? "opacity-75 cursor-not-allowed" : ""}
+                            `}
                         >
-                            Save Changes
+                            {isSaving ? (
+                                <span className="btn-loading-content">
+                                    <span className="spinner"></span>
+                                    Saving Changes...
+                                </span>
+                            ) : (
+                                "Save Changes"
+                            )}
                         </button>
 
                     </div>
@@ -1724,7 +1781,7 @@ export default function AdminMenu() {
                             <button
                                 onClick={handleConfirm}
 
-                                className="
+                                className={`
                                     flex-1
                                     h-14
 
@@ -1737,9 +1794,18 @@ export default function AdminMenu() {
                                     font-semibold
 
                                     transition-all
-                                "
+                                    duration-300
+                                    ${isSaving ? "opacity-75 cursor-not-allowed" : ""}
+                                `}
                             >
-                                Confirm
+                                {isSaving ? (
+                                    <span className="btn-loading-content">
+                                        <span className="spinner"></span>
+                                        Confirming...
+                                    </span>
+                                ) : (
+                                    "Confirm"
+                                )}
                             </button>
 
                         </div>

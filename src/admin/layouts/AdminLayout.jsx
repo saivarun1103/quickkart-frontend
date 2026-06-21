@@ -142,6 +142,12 @@ export default function AdminLayout() {
                             to="/founder"
                             setSidebarOpen={setSidebarOpen}
                         />
+                        <div className="space-y-2"></div>
+                        <SidebarButton
+                            title="🏢 Register Merchant"
+                            to="/founder/register"
+                            setSidebarOpen={setSidebarOpen}
+                        />
                     </>
                 )}
             </div>

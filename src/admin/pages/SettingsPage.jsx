@@ -621,7 +621,7 @@ export default function SettingsPage() {
                 </div>
 
                 <label
-                className="
+                className={`
                     px-5
                     py-3
 
@@ -636,19 +636,26 @@ export default function SettingsPage() {
                     cursor-pointer
 
                     transition
-                "
+                    ${uploadingBranding ? "opacity-75 cursor-not-allowed pointer-events-none" : ""}
+                `}
                 >
 
                 {
-                    uploadingBranding
-                    ? "Uploading..."
-                    : "Upload Logo"
+                    uploadingBranding ? (
+                        <span className="btn-loading-content">
+                            <span className="spinner"></span>
+                            Uploading...
+                        </span>
+                    ) : (
+                        "Upload Logo"
+                    )
                 }
 
                 <input
                     type="file"
                     accept="image/*"
                     hidden
+                    disabled={uploadingBranding}
 
                     onChange={(e) => {
 
@@ -736,7 +743,7 @@ export default function SettingsPage() {
             </div>
 
             <label
-                className="
+                className={`
                 inline-flex
                 mt-4
 
@@ -753,19 +760,26 @@ export default function SettingsPage() {
 
                 cursor-pointer
                 transition
-                "
+                ${uploadingBranding ? "opacity-75 cursor-not-allowed pointer-events-none" : ""}
+                `}
             >
 
                 {
-                uploadingBranding
-                    ? "Uploading..."
-                    : "Upload Banner"
+                uploadingBranding ? (
+                    <span className="btn-loading-content">
+                        <span className="spinner"></span>
+                        Uploading...
+                    </span>
+                ) : (
+                    "Upload Banner"
+                )
                 }
 
                 <input
                 type="file"
                 accept="image/*"
                 hidden
+                disabled={uploadingBranding}
 
                 onChange={(e) => {
 

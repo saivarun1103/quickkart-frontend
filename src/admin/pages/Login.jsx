@@ -12,6 +12,7 @@ export default function Login() {
     const [identifier, setIdentifier] = useState("");
     const [password, setPassword] = useState("");
     const [show, setShow] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -27,11 +28,7 @@ export default function Login() {
                 throw new Error("Invalid token");
             })
             .then((data) => {
-                if (data && data.role === "FOUNDER") {
-                    navigate("/founder");
-                } else {
-                    navigate("/admin/dashboard");
-                }
+                navigate("/admin/dashboard");
             })
             .catch(() => {
                 localStorage.removeItem("token");
@@ -40,44 +37,35 @@ export default function Login() {
     }, []);
 
     const handleLogin = async () => {
-        const response = await fetch(`${API_BASE}/api/login`, {
-            method: "POST",
+        if (loading) return;
+        setLoading(true);
+        try {
+            const response = await fetch(`${API_BASE}/api/login`, {
+                method: "POST",
 
-            headers: {
-                "Content-Type": "application/json",
-            },
+                headers: {
+                    "Content-Type": "application/json",
+                },
 
-            body: JSON.stringify({
-                identifier,
-                password,
-            }),
-        });
+                body: JSON.stringify({
+                    identifier,
+                    password,
+                }),
+            });
 
-        const data = await response.json();
+            const data = await response.json();
 
-        if (response.ok) {
-            localStorage.setItem("token", data.access_token);
-
-            try {
-                const meRes = await fetch(`${API_BASE}/api/admin/me`, {
-                    headers: {
-                        Authorization: `Bearer ${data.access_token}`
-                    }
-                });
-                if (meRes.ok) {
-                    const meData = await meRes.json();
-                    if (meData.role === "FOUNDER") {
-                        navigate("/founder");
-                        return;
-                    }
-                }
-            } catch (err) {
-                console.error("Failed to verify role after login:", err);
+            if (response.ok) {
+                localStorage.setItem("token", data.access_token);
+                navigate("/admin/dashboard");
+            } else {
+                alert(data.detail || "Login failed");
             }
-
-            navigate("/admin/dashboard");
-        } else {
-            alert(data.detail || "Login failed");
+        } catch (err) {
+            console.error("Login request failed:", err);
+            alert("Network error. Please try again.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -175,9 +163,21 @@ export default function Login() {
 
                 <button
                     onClick={handleLogin}
-                    style={buttonStyle}
+                    disabled={loading}
+                    style={{
+                        ...buttonStyle,
+                        opacity: loading ? 0.7 : 1,
+                        cursor: loading ? "not-allowed" : "pointer"
+                    }}
                 >
-                    Login
+                    {loading ? (
+                        <span className="btn-loading-content">
+                            <span className="spinner"></span>
+                            Logging in...
+                        </span>
+                    ) : (
+                        "Login"
+                    )}
                 </button>
 
                 <p

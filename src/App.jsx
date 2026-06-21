@@ -62,7 +62,7 @@ export default function App() {
 
         {/* REGISTER */}
         <Route
-            path="/secretregister"
+            path="/founder/register"
             element={
                 <FounderProtectedRoute>
                     <Register />

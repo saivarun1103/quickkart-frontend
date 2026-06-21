@@ -13,6 +13,7 @@ export default function Register() {
         password: "",
         business_type: "",
     });
+    const [loading, setLoading] = useState(false);
 
     const handleChange = (e) => {
         setForm({
@@ -22,24 +23,33 @@ export default function Register() {
     };
 
     const handleRegister = async () => {
-        const response = await fetch(`${API_BASE}/api/register`, {
-            method: "POST",
+        if (loading) return;
+        setLoading(true);
+        try {
+            const response = await fetch(`${API_BASE}/api/register`, {
+                method: "POST",
 
-            headers: {
-                "Content-Type": "application/json",
-            },
+                headers: {
+                    "Content-Type": "application/json",
+                },
 
-            body: JSON.stringify(form),
-        });
+                body: JSON.stringify(form),
+            });
 
-        const data = await response.json();
+            const data = await response.json();
 
-        if (response.ok) {
-            alert("Business Registered!");
+            if (response.ok) {
+                alert("Business Registered!");
 
-            navigate("/admin");
-        } else {
-            alert(data.detail || "Registration failed");
+                navigate("/admin");
+            } else {
+                alert(data.detail || "Registration failed");
+            }
+        } catch (err) {
+            console.error("Registration request failed:", err);
+            alert("Network error. Please try again.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -124,9 +134,21 @@ export default function Register() {
 
                 <button
                     onClick={handleRegister}
-                    style={buttonStyle}
+                    disabled={loading}
+                    style={{
+                        ...buttonStyle,
+                        opacity: loading ? 0.7 : 1,
+                        cursor: loading ? "not-allowed" : "pointer"
+                    }}
                 >
-                    Register
+                    {loading ? (
+                        <span className="btn-loading-content">
+                            <span className="spinner"></span>
+                            Registering...
+                        </span>
+                    ) : (
+                        "Register"
+                    )}
                 </button>
 
                 <p

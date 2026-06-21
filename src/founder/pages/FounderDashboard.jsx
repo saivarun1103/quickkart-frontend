@@ -116,7 +116,7 @@ export default function FounderDashboard() {
                         </button>
                         <button 
                             onClick={handleLogout}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all"
+                            className="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all shadow-md shadow-red-600/10"
                         >
                             Log Out
                         </button>
@@ -150,7 +150,7 @@ export default function FounderDashboard() {
                     </button>
                     <button 
                         onClick={handleLogout}
-                        className="text-xs bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-zinc-300 hover:text-white font-medium px-3 py-1.5 rounded-lg transition-all"
+                        className="text-xs bg-red-600 hover:bg-red-500 text-white font-medium px-3 py-1.5 rounded-lg transition-all shadow-md shadow-red-600/10"
                     >
                         Log Out
                     </button>
