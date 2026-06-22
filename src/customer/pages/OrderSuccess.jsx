@@ -256,7 +256,11 @@ export default function OrderSuccess() {
             </h3>
             <p className="text-xs text-gray-500 mt-1">
               {order.status === "completed" && "Thank you for ordering with us!"}
-              {order.status === "ready" && "Show the PIN at the counter to collect your items."}
+              {order.status === "ready" && (
+                order.pickup_verification_enabled 
+                  ? "Show the PIN at the counter to collect your items." 
+                  : "Collect your order at the counter."
+              )}
               {(order.status === "pending" || order.status === "preparing") && "We are packing your items."}
             </p>
           </div>
@@ -352,6 +356,58 @@ export default function OrderSuccess() {
           </div>
         </div>
 
+        {/* Counter Instruction Info Box */}
+        <div
+          className="
+            bg-blue-50
+            border
+            border-blue-100
+            text-blue-800
+            rounded-2xl
+            p-4
+            shadow-sm
+          "
+        >
+          <div className="flex items-start gap-3">
+
+            <div className="shrink-0 mt-0.5">
+              <InfoIcon
+                size={24}
+                className="text-blue-600"
+              />
+            </div>
+
+            <p
+              className="
+                text-sm
+                sm:text-base
+                font-medium
+                leading-relaxed
+                text-left
+              "
+            >
+              {order.pickup_verification_enabled ? (
+                <>
+                  Please show this{" "}
+                  <span className="font-bold text-blue-600">
+                    PIN
+                  </span>{" "}
+                  at the counter while collecting your order. Please check the items before leaving the store.
+                </>
+              ) : (
+                <>
+                  Please share your{" "}
+                  <span className="font-bold text-blue-600">
+                    Order ID
+                  </span>{" "}
+                  at the counter while collecting your order. Please check the items before leaving the store.
+                </>
+              )}
+            </p>
+
+          </div>
+        </div>
+
         {/* Status Block Card */}
         <div
           className="
@@ -368,16 +424,18 @@ export default function OrderSuccess() {
         >
           
           {/* Metadata Row */}
-          <div className="grid grid-cols-3 text-center bg-[#eef8f0] py-5">
+          <div className={`grid ${order.pickup_verification_enabled ? "grid-cols-3" : "grid-cols-2"} text-center bg-[#eef8f0] py-5`}>
             <div>
               <div className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Order ID</div>
               <div className="font-bold text-gray-800 text-lg">#{order.id}</div>
             </div>
-            <div className="border-x border-[#c8dfce]">
-              <div className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">PIN</div>
-              <div className="font-extrabold text-blue-600 text-lg">{order.pin}</div>
-            </div>
-            <div>
+            {order.pickup_verification_enabled && (
+              <div className="border-x border-[#c8dfce]">
+                <div className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">PIN</div>
+                <div className="font-extrabold text-blue-600 text-lg">{order.pin}</div>
+              </div>
+            )}
+            <div className={!order.pickup_verification_enabled ? "border-l border-[#c8dfce]" : ""}>
               <div className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Status</div>
               <div className="font-bold text-green-600 text-sm tracking-wide uppercase">
                 {order.payment_status}
@@ -639,105 +697,6 @@ export default function OrderSuccess() {
 
           Save Bill
         </button>
-
-        {/* Counter Instruction Info Box */}
-        <div
-          className="
-            bg-blue-50
-            border
-            border-blue-100
-            text-blue-800
-            rounded-2xl
-            p-4
-            shadow-sm
-          "
-        >
-          <div className="flex items-start gap-3">
-
-            <div className="shrink-0 mt-0.5">
-              <InfoIcon
-                size={24}
-                className="text-blue-600"
-              />
-            </div>
-
-            <p
-              className="
-                text-sm
-                sm:text-base
-                font-medium
-                leading-relaxed
-                text-left
-              "
-            >
-              Please show this{" "}
-              <span className="font-bold text-blue-600">
-                PIN
-              </span>{" "}
-              at the counter while collecting your order.
-            </p>
-
-          </div>
-        </div>
-
-        {/* WhatsApp Notification Inline Block */}
-        <div
-          className="
-            bg-green-50
-            border
-            border-[#c8dfce]
-            rounded-2xl
-            p-4
-            flex
-            flex-col
-            sm:flex-row
-            gap-4
-          "
-        >
-          <div className="flex items-start gap-3">
-            <div
-            className="
-              shrink-0
-              flex
-              items-center
-              justify-center
-              self-center
-            "
-          >
-            <div className="-translate-y-[2px]">
-              <WhatsappIcon size={34} />
-            </div>
-          </div>
-            <div>
-              <div className="font-bold text-green-800 text-sm">Get WhatsApp Updates</div>
-              <div className="text-xs text-gray-500 mt-0.5 leading-relaxed">
-                Receive order confirmation, ready-for-pickup alerts, and order updates directly on WhatsApp.
-              </div>
-            </div>
-          </div>
-          <button
-            onClick={() => {
-              const message = encodeURIComponent("I want to receive updates for my QuickKart order.");
-              window.open(`https://wa.me/918712573890?text=${message}`, "_blank");
-            }}
-            className="
-              w-full
-              sm:w-auto
-              bg-green-600
-              hover:bg-green-700
-              text-white
-              font-semibold
-              text-sm
-              px-5
-              py-3
-              rounded-2xl
-              transition
-              shadow-sm
-            "
-          >
-            Enable Updates
-          </button>
-        </div>
 
       </div>
     </div>
