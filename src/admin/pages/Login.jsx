@@ -161,6 +161,25 @@ export default function Login() {
                     </button>
                 </div>
 
+                <div
+                    style={{
+                        textAlign: "right",
+                        marginBottom: "20px",
+                        marginTop: "-8px",
+                    }}
+                >
+                    <Link
+                        to="/forgot-password"
+                        style={{
+                            color: "#2563eb",
+                            fontSize: "14px",
+                            textDecoration: "none",
+                        }}
+                    >
+                        Forgot Password?
+                    </Link>
+                </div>
+
                 <button
                     onClick={handleLogin}
                     disabled={loading}

@@ -1,8 +1,11 @@
-import { useEffect, useState } from "react";
+// import { useEffect, useState } from "react";
 import AdminLayout from "./admin/layouts/AdminLayout";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./admin/pages/Login";
 import Register from "./admin/pages/Register";
+import ForgotPassword from "./admin/pages/ForgotPassword";
+import VerifyResetOTP from "./admin/pages/VerifyResetOTP";
+import ResetPassword from "./admin/pages/ResetPassword";
 import ProtectedRoute from "./components/ProtectedRoute";
 import FounderProtectedRoute from "./components/FounderProtectedRoute";
 import FounderDashboard from "./founder/pages/FounderDashboard";
@@ -58,6 +61,21 @@ export default function App() {
         <Route
             path="/admin"
             element={<Login />}
+        />
+
+        <Route
+            path="/forgot-password"
+            element={<ForgotPassword />}
+        />
+
+        <Route
+            path="/verify-reset-otp"
+            element={<VerifyResetOTP />}
+        />
+
+        <Route
+            path="/reset-password"
+            element={<ResetPassword />}
         />
 
         {/* REGISTER */}
