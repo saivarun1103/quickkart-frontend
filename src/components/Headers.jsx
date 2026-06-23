@@ -28,6 +28,93 @@ export default function Header({
     const [hideSearch, setHideSearch] =
         useState(false);
 
+    const [showNotificationMenu, setShowNotificationMenu] = useState(false);
+    const [notifications, setNotifications] = useState([
+        {
+            id: 1,
+            title: "Welcome to GoSkipDQ",
+            message: "Manage your menu, orders, and business settings easily.",
+            time: "Just now",
+            read: false,
+            type: "info"
+        },
+        {
+            id: 2,
+            title: "Setup Complete",
+            message: "Your WhatsApp Business API configuration is active.",
+            time: "1 hour ago",
+            read: false,
+            type: "success"
+        }
+    ]);
+
+    const unreadCount = notifications.filter(n => !n.read).length;
+
+    const handleMarkAllRead = () => {
+        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    };
+
+    const handleNotificationClick = (n) => {
+        setNotifications(prev => prev.map(item => item.id === n.id ? { ...item, read: true } : item));
+        if (n.link) {
+            navigate(n.link);
+        }
+        setShowNotificationMenu(false);
+    };
+
+    // Close notification menu on click outside
+    useEffect(() => {
+        const handleClick = () => {
+            setShowNotificationMenu(false);
+        };
+        if (showNotificationMenu) {
+            window.addEventListener("click", handleClick);
+        }
+        return () => {
+            window.removeEventListener("click", handleClick);
+        };
+    }, [showNotificationMenu]);
+
+    // Dynamic orders loader for real-time notifications
+    useEffect(() => {
+        const fetchRecentOrders = async () => {
+            try {
+                const token = localStorage.getItem("token");
+                if (!token) return;
+                const response = await fetch(`${API_BASE}/api/admin/orders?range=today`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    const orderNotifications = data
+                        .filter(o => o.status === "pending" || o.payment_status === "paid")
+                        .map(o => ({
+                            id: `order-${o.id}`,
+                            title: `New Order #${String(o.id).padStart(4, "0")}`,
+                            message: `${o.customer_name || 'Customer'} placed an order (Total: ₹${o.total_price})`,
+                            time: new Date(o.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                            read: false,
+                            type: "order",
+                            link: "/admin/dashboard/orders"
+                        }));
+                    
+                    setNotifications(prev => {
+                        const filtered = prev.filter(n => !String(n.id).startsWith("order-"));
+                        return [...orderNotifications, ...filtered];
+                    });
+                }
+            } catch (err) {
+                console.error("Error fetching orders for notifications:", err);
+            }
+        };
+
+        fetchRecentOrders();
+        const interval = setInterval(fetchRecentOrders, 20000);
+        return () => clearInterval(interval);
+    }, []);
+
 
     //searchbar settings
     useEffect(() => {
@@ -324,24 +411,116 @@ export default function Header({
                     <div className="flex items-center gap-4">
 
                         {/* NOTIFICATION */}
-                        <button
-                            className="
-                                relative
+                        <div className="relative">
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShowNotificationMenu(!showNotificationMenu);
+                                    setShowProfileMenu(false);
+                                }}
+                                className="
+                                    relative
+                                    w-14
+                                    h-14
+                                    rounded-2xl
+                                    bg-zinc-900
+                                    border
+                                    border-zinc-800
+                                    cursor-pointer
+                                    flex
+                                    items-center
+                                    justify-center
+                                "
+                            >
+                                🔔
+                                {unreadCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white ring-2 ring-zinc-950 animate-pulse">
+                                        {unreadCount}
+                                    </span>
+                                )}
+                            </button>
 
-                                w-14
-                                h-14
+                            {showNotificationMenu && (
+                                <div
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="
+                                        absolute
+                                        top-16
+                                        right-0
+                                        w-80
+                                        max-h-96
+                                        overflow-y-auto
+                                        rounded-3xl
+                                        border
+                                        border-zinc-800
+                                        bg-zinc-900/95
+                                        backdrop-blur-2xl
+                                        p-4
+                                        shadow-2xl
+                                        z-[6000]
+                                    "
+                                >
+                                    <div className="flex items-center justify-between border-b border-zinc-800 pb-3 mb-3">
+                                        <h3 className="font-semibold text-white">Notifications</h3>
+                                        {unreadCount > 0 && (
+                                            <button
+                                                onClick={handleMarkAllRead}
+                                                className="text-xs text-blue-500 hover:text-blue-400 font-medium transition"
+                                            >
+                                                Mark all as read
+                                            </button>
+                                        )}
+                                    </div>
 
-                                rounded-2xl
-
-                                bg-zinc-900
-                                border
-                                border-zinc-800
-
-                                cursor-pointer
-                            "
-                        >
-                            🔔
-                        </button>
+                                    <div className="space-y-3 flex flex-col gap-3">
+                                        {notifications.length === 0 ? (
+                                            <div className="text-center py-6 text-zinc-500 text-sm">
+                                                <span className="text-2xl block mb-2">🎉</span>
+                                                All caught up! No notifications.
+                                            </div>
+                                        ) : (
+                                            notifications.map((n) => (
+                                                <div
+                                                    key={n.id}
+                                                    onClick={() => handleNotificationClick(n)}
+                                                    className={`
+                                                        p-3
+                                                        rounded-2xl
+                                                        cursor-pointer
+                                                        transition-all
+                                                        border
+                                                        text-left
+                                                        ${n.read 
+                                                            ? 'bg-transparent border-transparent opacity-60' 
+                                                            : 'bg-zinc-800/40 border-zinc-800 hover:bg-zinc-800 hover:border-zinc-700'
+                                                        }
+                                                    `}
+                                                >
+                                                    <div className="flex items-start gap-3">
+                                                        <div className="mt-1">
+                                                            {n.type === "success" && <span className="text-green-500 text-sm">🟢</span>}
+                                                            {n.type === "info" && <span className="text-blue-500 text-sm">🔵</span>}
+                                                            {n.type === "order" && <span className="text-yellow-500 text-sm">🟡</span>}
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <h4 className="text-sm font-semibold text-white leading-tight">
+                                                                {n.title}
+                                                            </h4>
+                                                            <p className="text-xs text-zinc-400 mt-1 leading-normal">
+                                                                {n.message}
+                                                            </p>
+                                                            <span className="text-[10px] text-zinc-500 mt-2 block">
+                                                                {n.time}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
 
                         {/* AVATAR */}
                         <button
@@ -585,20 +764,115 @@ export default function Header({
                         {/* RIGHT */}
                         <div className="flex items-center gap-2">
 
-                            <button
-                                className="
-                                    w-11
-                                    h-11
+                            {/* NOTIFICATION */}
+                            <div className="relative">
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setShowNotificationMenu(!showNotificationMenu);
+                                        setShowProfileMenu(false);
+                                    }}
+                                    className="
+                                        relative
+                                        w-11
+                                        h-11
+                                        rounded-2xl
+                                        bg-zinc-900
+                                        border
+                                        border-zinc-800
+                                        flex
+                                        items-center
+                                        justify-center
+                                    "
+                                >
+                                    🔔
+                                    {unreadCount > 0 && (
+                                        <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[9px] font-bold text-white ring-2 ring-zinc-950 animate-pulse">
+                                            {unreadCount}
+                                        </span>
+                                    )}
+                                </button>
 
-                                    rounded-2xl
+                                {showNotificationMenu && (
+                                    <div
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="
+                                            absolute
+                                            top-14
+                                            right-0
+                                            w-72
+                                            max-h-80
+                                            overflow-y-auto
+                                            rounded-3xl
+                                            border
+                                            border-zinc-800
+                                            bg-zinc-900/95
+                                            backdrop-blur-2xl
+                                            p-4
+                                            shadow-2xl
+                                            z-[6000]
+                                        "
+                                    >
+                                        <div className="flex items-center justify-between border-b border-zinc-800 pb-3 mb-3">
+                                            <h3 className="font-semibold text-white text-sm">Notifications</h3>
+                                            {unreadCount > 0 && (
+                                                <button
+                                                    onClick={handleMarkAllRead}
+                                                    className="text-xs text-blue-500 hover:text-blue-400 font-medium transition"
+                                                >
+                                                    Clear
+                                                </button>
+                                            )}
+                                        </div>
 
-                                    bg-zinc-900
-                                    border
-                                    border-zinc-800
-                                "
-                            >
-                                🔔
-                            </button>
+                                        <div className="space-y-3 flex flex-col gap-3">
+                                            {notifications.length === 0 ? (
+                                                <div className="text-center py-6 text-zinc-500 text-xs">
+                                                    All caught up!
+                                                </div>
+                                            ) : (
+                                                notifications.map((n) => (
+                                                    <div
+                                                        key={n.id}
+                                                        onClick={() => handleNotificationClick(n)}
+                                                        className={`
+                                                            p-2.5
+                                                            rounded-2xl
+                                                            cursor-pointer
+                                                            transition-all
+                                                            border
+                                                            text-left
+                                                            ${n.read 
+                                                                ? 'bg-transparent border-transparent opacity-60' 
+                                                                : 'bg-zinc-800/40 border-zinc-800 hover:bg-zinc-800'
+                                                            }
+                                                        `}
+                                                    >
+                                                        <div className="flex items-start gap-2">
+                                                            <div className="mt-0.5">
+                                                                {n.type === "success" && <span className="text-green-500 text-xs">🟢</span>}
+                                                                {n.type === "info" && <span className="text-blue-500 text-xs">🔵</span>}
+                                                                {n.type === "order" && <span className="text-yellow-500 text-xs">🟡</span>}
+                                                            </div>
+                                                            <div className="flex-1">
+                                                                <h4 className="text-xs font-semibold text-white leading-tight">
+                                                                    {n.title}
+                                                                </h4>
+                                                                <p className="text-[11px] text-zinc-400 mt-0.5 leading-normal">
+                                                                    {n.message}
+                                                                </p>
+                                                                <span className="text-[9px] text-zinc-500 mt-1 block">
+                                                                    {n.time}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
 
                             <button
                                 onClick={(e) => {

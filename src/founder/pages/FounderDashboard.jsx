@@ -18,6 +18,17 @@ export default function FounderDashboard() {
     const [sortField, setSortField] = useState("revenue");
     const [sortDirection, setSortDirection] = useState("desc");
 
+    // Onboarding review flow states
+    const [activeDashboardTab, setActiveDashboardTab] = useState("performance");
+    const [reviews, setReviews] = useState([]);
+    const [reviewFilterTab, setReviewFilterTab] = useState("pending");
+    const [reviewSearchQuery, setReviewSearchQuery] = useState("");
+    const [selectedReview, setSelectedReview] = useState(null);
+    const [showRejectionModal, setShowRejectionModal] = useState(false);
+    const [rejectionNotes, setRejectionNotes] = useState("");
+    const [reviewToReject, setReviewToReject] = useState(null);
+    const [showConfirmModal, setShowConfirmModal] = useState(null);
+
     // Fetch dashboard data
     const fetchDashboardData = async () => {
         setLoading(true);
@@ -27,14 +38,15 @@ export default function FounderDashboard() {
         try {
             const headers = { Authorization: `Bearer ${token}` };
             
-            const [overviewRes, trendsRes, businessesRes, activityRes] = await Promise.all([
+            const [overviewRes, trendsRes, businessesRes, activityRes, reviewsRes] = await Promise.all([
                 fetch(`${API_BASE}/api/founder/overview`, { headers }),
                 fetch(`${API_BASE}/api/founder/revenue-trends`, { headers }),
                 fetch(`${API_BASE}/api/founder/top-businesses`, { headers }),
-                fetch(`${API_BASE}/api/founder/activity`, { headers })
+                fetch(`${API_BASE}/api/founder/activity`, { headers }),
+                fetch(`${API_BASE}/api/founder/reviews`, { headers })
             ]);
             
-            if (!overviewRes.ok || !trendsRes.ok || !businessesRes.ok || !activityRes.ok) {
+            if (!overviewRes.ok || !trendsRes.ok || !businessesRes.ok || !activityRes.ok || !reviewsRes.ok) {
                 if (overviewRes.status === 403) {
                     throw new Error("Access denied: You must be a founder to view this dashboard.");
                 }
@@ -45,11 +57,13 @@ export default function FounderDashboard() {
             const trendsData = await trendsRes.json();
             const businessesData = await businessesRes.json();
             const activityData = await activityRes.json();
+            const reviewsData = await reviewsRes.json();
             
             setOverview(overviewData);
             setTrends(trendsData);
             setTopBusinesses(businessesData);
             setActivity(activityData);
+            setReviews(reviewsData);
         } catch (err) {
             console.error(err);
             setError(err.message || "An error occurred.");
@@ -67,6 +81,83 @@ export default function FounderDashboard() {
         localStorage.removeItem("token");
         navigate("/admin");
     };
+
+    const handleApproveMerchant = async (businessId) => {
+        const token = localStorage.getItem("token");
+        try {
+            const response = await fetch(`${API_BASE}/api/founder/reviews/${businessId}/approve`, {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (response.ok) {
+                fetchDashboardData();
+                setShowConfirmModal(null);
+            } else {
+                const data = await response.json();
+                alert(data.detail || "Approval failed");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Network error.");
+        }
+    };
+
+    const handleRejectMerchant = async () => {
+        if (!reviewToReject) return;
+        const token = localStorage.getItem("token");
+        try {
+            const response = await fetch(`${API_BASE}/api/founder/reviews/${reviewToReject.id}/reject`, {
+                method: "POST",
+                headers: { 
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}` 
+                },
+                body: JSON.stringify({ review_notes: rejectionNotes })
+            });
+            if (response.ok) {
+                fetchDashboardData();
+                setShowRejectionModal(false);
+                setRejectionNotes("");
+                setReviewToReject(null);
+            } else {
+                const data = await response.json();
+                alert(data.detail || "Rejection failed");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Network error.");
+        }
+    };
+
+    // Filter reviews based on tab and query
+    const filteredReviews = reviews.filter((rev) => {
+        if (rev.approval_status !== reviewFilterTab) return false;
+        
+        const query = reviewSearchQuery.toLowerCase().trim();
+        if (!query) return true;
+        
+        return (
+            rev.name?.toLowerCase().includes(query) ||
+            rev.owner_name?.toLowerCase().includes(query) ||
+            rev.email?.toLowerCase().includes(query) ||
+            rev.business_phone?.includes(query)
+        );
+    });
+
+    // Submissions velocity logic for KPIs
+    const nowTime = new Date();
+    const todayStartTime = new Date(nowTime.getFullYear(), nowTime.getMonth(), nowTime.getDate());
+    const submittedToday = reviews.filter(r => new Date(r.created_at) >= todayStartTime).length;
+
+    const oneWeekAgo = new Date(nowTime.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const submittedThisWeek = reviews.filter(r => new Date(r.created_at) >= oneWeekAgo).length;
+
+    const oneMonthAgo = new Date(nowTime.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const submittedThisMonth = reviews.filter(r => new Date(r.created_at) >= oneMonthAgo).length;
+
+    const pendingCount = reviews.filter(r => r.approval_status === "pending").length;
+    const approvedCount = reviews.filter(r => r.approval_status === "approved").length;
+    const rejectedCount = reviews.filter(r => r.approval_status === "rejected").length;
 
     // Table sorting logic
     const handleSort = (field) => {
@@ -158,173 +249,602 @@ export default function FounderDashboard() {
             </header>
 
             <main className="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-8">
-                {/* Dashboard Heading */}
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div>
-                        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-white">Platform Performance</h2>
-                        <p className="text-sm text-zinc-400 mt-1">Real-time unified insights across all registered businesses and orders.</p>
-                    </div>
-                    <button 
-                        onClick={fetchDashboardData}
-                        className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 transition-all border border-blue-500/20 self-start md:self-auto"
+                {/* Secondary navigation tab bar */}
+                <div className="flex border-b border-zinc-850 pb-px mb-6 gap-6">
+                    <button
+                        onClick={() => setActiveDashboardTab("performance")}
+                        className={`pb-4 text-sm font-semibold tracking-wide border-b-2 transition-all relative ${
+                            activeDashboardTab === "performance"
+                                ? "border-blue-500 text-white"
+                                : "border-transparent text-zinc-400 hover:text-zinc-200"
+                        }`}
                     >
-                        🔄 Refresh Data
+                        📊 Performance & Analytics
+                    </button>
+                    <button
+                        onClick={() => setActiveDashboardTab("reviews")}
+                        className={`pb-4 text-sm font-semibold tracking-wide border-b-2 transition-all relative ${
+                            activeDashboardTab === "reviews"
+                                ? "border-blue-500 text-white"
+                                : "border-transparent text-zinc-400 hover:text-zinc-200"
+                        }`}
+                    >
+                        🤝 Merchant Reviews
+                        {pendingCount > 0 && (
+                            <span className="absolute top-0 -right-6 flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white scale-90">
+                                {pendingCount}
+                            </span>
+                        )}
                     </button>
                 </div>
 
-                {/* Metrics Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <MetricCard 
-                        title="Today's Sales" 
-                        value={`₹${metrics?.today_sales?.value || 0}`}
-                        change={metrics?.today_sales?.change} 
-                        trend={metrics?.today_sales?.trend}
-                        label="vs yesterday"
-                    />
-                    <MetricCard 
-                        title="Today's Orders" 
-                        value={metrics?.today_orders?.value || 0}
-                        change={metrics?.today_orders?.change} 
-                        trend={metrics?.today_orders?.trend}
-                        label="vs yesterday"
-                    />
-                    <MetricCard 
-                        title="This Week Sales" 
-                        value={`₹${metrics?.week_sales?.value || 0}`}
-                        change={metrics?.week_sales?.change} 
-                        trend={metrics?.week_sales?.trend}
-                        label="vs last week"
-                    />
-                    <MetricCard 
-                        title="This Month Sales" 
-                        value={`₹${metrics?.month_sales?.value || 0}`}
-                        change={metrics?.month_sales?.change} 
-                        trend={metrics?.month_sales?.trend}
-                        label="vs last month"
-                    />
-                </div>
-
-                {/* Platform Analytics Cards Grid */}
-                <section className="bg-zinc-900/40 border border-zinc-800/80 rounded-3xl p-6 md:p-8">
-                    <h3 className="text-sm font-semibold uppercase tracking-wider text-zinc-400 mb-6">Platform Aggregates</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 gap-y-8">
-                        <AnalyticStatItem label="Total Businesses" value={analytics?.total_businesses || 0} />
-                        <AnalyticStatItem label="Active Today" value={analytics?.active_businesses_today || 0} />
-                        <AnalyticStatItem label="Orders Today" value={analytics?.total_orders_today || 0} />
-                        <AnalyticStatItem label="Orders This Week" value={analytics?.total_orders_this_week || 0} />
-                        <AnalyticStatItem label="Orders This Month" value={analytics?.total_orders_this_month || 0} />
-                        <AnalyticStatItem label="Average Order Value" value={`₹${analytics?.average_order_value || 0}`} />
-                        <AnalyticStatItem label="Revenue / Business" value={`₹${analytics?.revenue_per_business || 0}`} />
-                        <AnalyticStatItem label="Global Conversion Rate" value="98.4%" highlight={true} />
-                    </div>
-                </section>
-
-                {/* Main Content Split: Revenue Chart & Top Businesses */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Revenue Trends Chart (Left 2 cols) */}
-                    <div className="lg:col-span-2 bg-[#0d0d11]/80 border border-zinc-800/80 rounded-3xl p-6 flex flex-col min-h-[420px]">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                {activeDashboardTab === "performance" ? (
+                    <div className="space-y-8 animate-in fade-in duration-300">
+                        {/* Dashboard Heading */}
+                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                             <div>
-                                <h3 className="text-base font-semibold text-white">Revenue Trends</h3>
-                                <p className="text-xs text-zinc-400">Aggregated revenue analytics stream</p>
+                                <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-white">Platform Performance</h2>
+                                <p className="text-sm text-zinc-400 mt-1">Real-time unified insights across all registered businesses and orders.</p>
                             </div>
-                            <div className="flex bg-zinc-900/90 border border-zinc-800 p-1 rounded-xl self-start sm:self-auto">
-                                <TabButton label="Daily (7d)" active={trendTab === "daily"} onClick={() => setTrendTab("daily")} />
-                                <TabButton label="Weekly (12w)" active={trendTab === "weekly"} onClick={() => setTrendTab("weekly")} />
-                                <TabButton label="Monthly (12m)" active={trendTab === "monthly"} onClick={() => setTrendTab("monthly")} />
+                            <button 
+                                onClick={fetchDashboardData}
+                                className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 transition-all border border-blue-500/20 self-start md:self-auto"
+                            >
+                                🔄 Refresh Data
+                            </button>
+                        </div>
+
+                        {/* Metrics Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <MetricCard 
+                                title="Today's Sales" 
+                                value={`₹${metrics?.today_sales?.value || 0}`}
+                                change={metrics?.today_sales?.change} 
+                                trend={metrics?.today_sales?.trend}
+                                label="vs yesterday"
+                            />
+                            <MetricCard 
+                                title="Today's Orders" 
+                                value={metrics?.today_orders?.value || 0}
+                                change={metrics?.today_orders?.change} 
+                                trend={metrics?.today_orders?.trend}
+                                label="vs yesterday"
+                            />
+                            <MetricCard 
+                                title="This Week Sales" 
+                                value={`₹${metrics?.week_sales?.value || 0}`}
+                                change={metrics?.week_sales?.change} 
+                                trend={metrics?.week_sales?.trend}
+                                label="vs last week"
+                            />
+                            <MetricCard 
+                                title="This Month Sales" 
+                                value={`₹${metrics?.month_sales?.value || 0}`}
+                                change={metrics?.month_sales?.change} 
+                                trend={metrics?.month_sales?.trend}
+                                label="vs last month"
+                            />
+                        </div>
+
+                        {/* Platform Analytics Cards Grid */}
+                        <section className="bg-zinc-900/40 border border-zinc-800/80 rounded-3xl p-6 md:p-8">
+                            <h3 className="text-sm font-semibold uppercase tracking-wider text-zinc-400 mb-6">Platform Aggregates</h3>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 gap-y-8">
+                                <AnalyticStatItem label="Total Businesses" value={analytics?.total_businesses || 0} />
+                                <AnalyticStatItem label="Active Today" value={analytics?.active_businesses_today || 0} />
+                                <AnalyticStatItem label="Orders Today" value={analytics?.total_orders_today || 0} />
+                                <AnalyticStatItem label="Orders This Week" value={analytics?.total_orders_this_week || 0} />
+                                <AnalyticStatItem label="Orders This Month" value={analytics?.total_orders_this_month || 0} />
+                                <AnalyticStatItem label="Average Order Value" value={`₹${analytics?.average_order_value || 0}`} />
+                                <AnalyticStatItem label="Revenue / Business" value={`₹${analytics?.revenue_per_business || 0}`} />
+                                <AnalyticStatItem label="Global Conversion Rate" value="98.4%" highlight={true} />
+                            </div>
+                        </section>
+
+                        {/* Main Content Split: Revenue Chart & Top Businesses */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            {/* Revenue Trends Chart */}
+                            <div className="lg:col-span-2 bg-[#0d0d11]/80 border border-zinc-800/80 rounded-3xl p-6 flex flex-col min-h-[420px]">
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                                    <div>
+                                        <h3 className="text-base font-semibold text-white">Revenue Trends</h3>
+                                        <p className="text-xs text-zinc-400">Aggregated revenue analytics stream</p>
+                                    </div>
+                                    <div className="flex bg-zinc-900/90 border border-zinc-800 p-1 rounded-xl self-start sm:self-auto">
+                                        <TabButton label="Daily (7d)" active={trendTab === "daily"} onClick={() => setTrendTab("daily")} />
+                                        <TabButton label="Weekly (12w)" active={trendTab === "weekly"} onClick={() => setTrendTab("weekly")} />
+                                        <TabButton label="Monthly (12m)" active={trendTab === "monthly"} onClick={() => setTrendTab("monthly")} />
+                                    </div>
+                                </div>
+                                <div className="flex-1 flex flex-col justify-end">
+                                    {trends && (
+                                        <CustomSVGChart 
+                                            data={trends[trendTab] || []} 
+                                            type={trendTab === "monthly" ? "bar" : "line"} 
+                                        />
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Recent Activity */}
+                            <div className="bg-[#0d0d11]/80 border border-zinc-800/80 rounded-3xl p-6 flex flex-col max-h-[420px] overflow-hidden">
+                                <div className="mb-4">
+                                    <h3 className="text-base font-semibold text-white">Platform Activity</h3>
+                                    <p className="text-xs text-zinc-400">Real-time onboarding, sales, & milestones</p>
+                                </div>
+                                <div className="flex-1 overflow-y-auto pr-1 space-y-4 custom-scrollbar">
+                                    {activity.length === 0 ? (
+                                        <p className="text-zinc-500 text-xs text-center py-10">No recent activity detected.</p>
+                                    ) : (
+                                        activity.map((act, index) => (
+                                            <ActivityItem key={index} item={act} />
+                                        ))
+                                    )}
+                                </div>
                             </div>
                         </div>
-                        <div className="flex-1 flex flex-col justify-end">
-                            {trends && (
-                                <CustomSVGChart 
-                                    data={trends[trendTab] || []} 
-                                    type={trendTab === "monthly" ? "bar" : "line"} 
-                                />
-                            )}
+
+                        {/* Top Performing Businesses */}
+                        <div className="bg-[#0d0d11]/80 border border-zinc-800/80 rounded-3xl overflow-hidden">
+                            <div className="p-6 border-b border-zinc-800/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                <div>
+                                    <h3 className="text-base font-semibold text-white">Top Performing Businesses</h3>
+                                    <p className="text-xs text-zinc-400">Compare metrics across all registered merchants</p>
+                                </div>
+                                <div className="text-xs text-zinc-400">
+                                    Click table headers to sort database records
+                                </div>
+                            </div>
+                            <div className="overflow-x-auto w-full">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="border-b border-zinc-800 text-zinc-400 text-xs font-semibold uppercase tracking-wider bg-zinc-900/10">
+                                            <th 
+                                                className="py-4 px-6 cursor-pointer hover:text-white transition-colors"
+                                                onClick={() => handleSort("name")}
+                                            >
+                                                Business Name {sortField === "name" && (sortDirection === "asc" ? "▲" : "▼")}
+                                            </th>
+                                            <th 
+                                                className="py-4 px-6 text-right cursor-pointer hover:text-white transition-colors"
+                                                onClick={() => handleSort("orders")}
+                                            >
+                                                Total Orders {sortField === "orders" && (sortDirection === "asc" ? "▲" : "▼")}
+                                            </th>
+                                            <th 
+                                                className="py-4 px-6 text-right cursor-pointer hover:text-white transition-colors"
+                                                onClick={() => handleSort("revenue")}
+                                            >
+                                                Revenue {sortField === "revenue" && (sortDirection === "asc" ? "▲" : "▼")}
+                                            </th>
+                                            <th 
+                                                className="py-4 px-6 text-right cursor-pointer hover:text-white transition-colors"
+                                                onClick={() => handleSort("aov")}
+                                            >
+                                                Avg Order Value {sortField === "aov" && (sortDirection === "asc" ? "▲" : "▼")}
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-zinc-850 text-sm text-zinc-300">
+                                        {sortedBusinesses.length === 0 ? (
+                                            <tr>
+                                                <td colSpan="4" className="text-center py-10 text-zinc-500">
+                                                    No onboarded businesses found.
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            sortedBusinesses.map((biz) => (
+                                                <tr key={biz.id} className="hover:bg-zinc-900/30 transition-colors">
+                                                    <td className="py-4 px-6 font-medium text-white">{biz.name}</td>
+                                                    <td className="py-4 px-6 text-right">{biz.orders.toLocaleString()}</td>
+                                                    <td className="py-4 px-6 text-right font-semibold text-emerald-400 font-mono">₹{biz.revenue.toLocaleString()}</td>
+                                                    <td className="py-4 px-6 text-right font-mono">₹{biz.aov.toLocaleString()}</td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
-
-                    {/* Recent Platform Activity Feed (Right 1 col) */}
-                    <div className="bg-[#0d0d11]/80 border border-zinc-800/80 rounded-3xl p-6 flex flex-col max-h-[420px] overflow-hidden">
-                        <div className="mb-4">
-                            <h3 className="text-base font-semibold text-white">Platform Activity</h3>
-                            <p className="text-xs text-zinc-400">Real-time onboarding, sales, & milestones</p>
+                ) : (
+                    <div className="space-y-8 animate-in fade-in duration-300">
+                        {/* Heading */}
+                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                            <div>
+                                <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-white font-sans">Merchant Reviews</h2>
+                                <p className="text-sm text-zinc-400 mt-1">Review, approve, or reject incoming business onboarding requests.</p>
+                            </div>
+                            <button 
+                                onClick={fetchDashboardData}
+                                className="inline-flex items-center justify-center gap-2 bg-[#18181b] hover:bg-[#27272a] text-white text-xs font-semibold px-4 py-2.5 rounded-xl border border-zinc-800 transition-all self-start md:self-auto"
+                            >
+                                🔄 Refresh List
+                            </button>
                         </div>
-                        <div className="flex-1 overflow-y-auto pr-1 space-y-4 custom-scrollbar">
-                            {activity.length === 0 ? (
-                                <p className="text-zinc-500 text-xs text-center py-10">No recent activity detected.</p>
+
+                        {/* KPI Metrics Cards */}
+                        <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 md:gap-6">
+                            <div className="bg-[#0d0d11] border border-zinc-800/80 rounded-2xl p-5">
+                                <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider block">Pending Reviews</span>
+                                <span className="text-2xl md:text-3xl font-bold tracking-tight text-blue-400 mt-2 block font-mono">{pendingCount}</span>
+                            </div>
+                            <div className="bg-[#0d0d11] border border-zinc-800/80 rounded-2xl p-5">
+                                <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider block">Approved Stores</span>
+                                <span className="text-2xl md:text-3xl font-bold tracking-tight text-emerald-400 mt-2 block font-mono">{approvedCount}</span>
+                            </div>
+                            <div className="bg-[#0d0d11] border border-zinc-800/80 rounded-2xl p-5">
+                                <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider block">Rejected Apps</span>
+                                <span className="text-2xl md:text-3xl font-bold tracking-tight text-red-400 mt-2 block font-mono">{rejectedCount}</span>
+                            </div>
+                            <div className="bg-[#0d0d11] border border-zinc-800/80 rounded-2xl p-5">
+                                <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider block">Submitted Today</span>
+                                <span className="text-2xl md:text-3xl font-bold tracking-tight text-white mt-2 block font-mono">{submittedToday}</span>
+                            </div>
+                            <div className="bg-[#0d0d11] border border-zinc-800/80 rounded-2xl p-5">
+                                <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider block">Submitted Week</span>
+                                <span className="text-2xl md:text-3xl font-bold tracking-tight text-white mt-2 block font-mono">{submittedThisWeek}</span>
+                            </div>
+                            <div className="bg-[#0d0d11] border border-zinc-800/80 rounded-2xl p-5">
+                                <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider block">Submitted Month</span>
+                                <span className="text-2xl md:text-3xl font-bold tracking-tight text-white mt-2 block font-mono">{submittedThisMonth}</span>
+                            </div>
+                        </div>
+
+                        {/* Search & Sub-Tabs Row */}
+                        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-zinc-900/10 border border-zinc-850 p-4 rounded-2xl">
+                            {/* Tabs: Pending, Approved, Rejected */}
+                            <div className="flex bg-zinc-950 border border-zinc-800/80 p-1 rounded-xl w-full sm:w-auto">
+                                <button
+                                    onClick={() => setReviewFilterTab("pending")}
+                                    className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                                        reviewFilterTab === "pending"
+                                            ? "bg-zinc-800 text-white shadow-sm"
+                                            : "text-zinc-400 hover:text-white"
+                                    }`}
+                                >
+                                    Pending ({pendingCount})
+                                </button>
+                                <button
+                                    onClick={() => setReviewFilterTab("approved")}
+                                    className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                                        reviewFilterTab === "approved"
+                                            ? "bg-zinc-800 text-white shadow-sm"
+                                            : "text-zinc-400 hover:text-white"
+                                    }`}
+                                >
+                                    Approved ({approvedCount})
+                                </button>
+                                <button
+                                    onClick={() => setReviewFilterTab("rejected")}
+                                    className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                                        reviewFilterTab === "rejected"
+                                            ? "bg-zinc-800 text-white shadow-sm"
+                                            : "text-zinc-400 hover:text-white"
+                                    }`}
+                                >
+                                    Rejected ({rejectedCount})
+                                </button>
+                            </div>
+
+                            {/* Search Field */}
+                            <div className="relative w-full sm:w-72">
+                                <input
+                                    type="text"
+                                    placeholder="Search by store, owner, email, phone..."
+                                    value={reviewSearchQuery}
+                                    onChange={(e) => setReviewSearchQuery(e.target.value)}
+                                    className="w-full bg-zinc-900 border border-zinc-800/80 rounded-xl px-4 py-2.5 text-xs text-white placeholder-zinc-500 outline-none focus:border-blue-500 transition-all"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Review Cards Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {filteredReviews.length === 0 ? (
+                                <div className="col-span-full bg-[#0d0d11]/80 border border-zinc-800/80 rounded-3xl p-16 text-center text-zinc-500">
+                                    <span className="text-4xl block mb-3">🤝</span>
+                                    <h4 className="text-zinc-400 text-sm font-semibold mb-1">No Applications Found</h4>
+                                    <p className="text-zinc-500 text-xs">There are no onboarding requests matching the current status.</p>
+                                </div>
                             ) : (
-                                activity.map((act, index) => (
-                                    <ActivityItem key={index} item={act} />
+                                filteredReviews.map((rev) => (
+                                    <div key={rev.id} className="bg-[#0d0d11] border border-zinc-800/80 hover:border-zinc-700/60 rounded-3xl p-6 flex flex-col justify-between transition-all shadow-sm">
+                                        <div className="space-y-4">
+                                            <div className="flex justify-between items-start gap-2">
+                                                <div>
+                                                    <h4 className="text-base font-bold text-white truncate max-w-[180px]">{rev.name}</h4>
+                                                    <span className="text-[10px] bg-zinc-850 text-zinc-400 px-2 py-0.5 rounded mt-1.5 inline-block uppercase font-bold tracking-wider">{rev.business_type || 'Shop'}</span>
+                                                </div>
+                                                <span className={`text-[9px] px-2.5 py-1 rounded-full font-bold uppercase ${
+                                                    rev.approval_status === 'approved' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                                                    rev.approval_status === 'rejected' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 
+                                                    'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                                                }`}>
+                                                    {rev.approval_status}
+                                                </span>
+                                            </div>
+
+                                            <div className="space-y-2 text-xs text-zinc-400">
+                                                <div className="flex justify-between">
+                                                    <span>Owner:</span>
+                                                    <span className="text-zinc-200 font-semibold">{rev.owner_name}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span>Email:</span>
+                                                    <span className="text-zinc-200 font-semibold truncate max-w-[170px]">{rev.email}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span>Phone:</span>
+                                                    <span className="text-zinc-200 font-semibold">{rev.business_phone}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span>Submitted:</span>
+                                                    <span className="text-zinc-200 font-semibold">{new Date(rev.created_at).toLocaleDateString()}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-6 flex flex-col gap-2">
+                                            <button
+                                                onClick={() => setSelectedReview(rev)}
+                                                className="w-full bg-zinc-900 hover:bg-zinc-850 text-zinc-300 font-semibold text-xs py-2.5 rounded-xl border border-zinc-800 hover:border-zinc-700 transition-all cursor-pointer"
+                                            >
+                                                View Application Details
+                                            </button>
+
+                                            {rev.approval_status === 'pending' && (
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => {
+                                                            setShowConfirmModal({
+                                                                type: 'approve',
+                                                                businessId: rev.id,
+                                                                title: 'Approve Merchant',
+                                                                message: `Are you sure you want to approve '${rev.name}'? This will allow them to login and access the merchant dashboard immediately.`,
+                                                                action: () => handleApproveMerchant(rev.id)
+                                                            });
+                                                        }}
+                                                        className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs py-2.5 rounded-xl transition-all shadow-md shadow-emerald-600/10 cursor-pointer"
+                                                    >
+                                                        Approve
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            setReviewToReject(rev);
+                                                            setShowRejectionModal(true);
+                                                        }}
+                                                        className="flex-1 bg-[#1a0a0a] hover:bg-[#2e1212] text-red-400 font-semibold text-xs py-2.5 rounded-xl border border-red-500/15 hover:border-red-500/30 transition-all cursor-pointer"
+                                                    >
+                                                        Reject
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
                                 ))
                             )}
                         </div>
                     </div>
-                </div>
-
-                {/* Top Performing Businesses Section */}
-                <div className="bg-[#0d0d11]/80 border border-zinc-800/80 rounded-3xl overflow-hidden">
-                    <div className="p-6 border-b border-zinc-800/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div>
-                            <h3 className="text-base font-semibold text-white">Top Performing Businesses</h3>
-                            <p className="text-xs text-zinc-400">Compare metrics across all registered merchants</p>
-                        </div>
-                        <div className="text-xs text-zinc-400">
-                            Click table headers to sort database records
-                        </div>
-                    </div>
-                    <div className="overflow-x-auto w-full">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="border-b border-zinc-800 text-zinc-400 text-xs font-semibold uppercase tracking-wider bg-zinc-900/10">
-                                    <th 
-                                        className="py-4 px-6 cursor-pointer hover:text-white transition-colors"
-                                        onClick={() => handleSort("name")}
-                                    >
-                                        Business Name {sortField === "name" && (sortDirection === "asc" ? "▲" : "▼")}
-                                    </th>
-                                    <th 
-                                        className="py-4 px-6 text-right cursor-pointer hover:text-white transition-colors"
-                                        onClick={() => handleSort("orders")}
-                                    >
-                                        Total Orders {sortField === "orders" && (sortDirection === "asc" ? "▲" : "▼")}
-                                    </th>
-                                    <th 
-                                        className="py-4 px-6 text-right cursor-pointer hover:text-white transition-colors"
-                                        onClick={() => handleSort("revenue")}
-                                    >
-                                        Revenue {sortField === "revenue" && (sortDirection === "asc" ? "▲" : "▼")}
-                                    </th>
-                                    <th 
-                                        className="py-4 px-6 text-right cursor-pointer hover:text-white transition-colors"
-                                        onClick={() => handleSort("aov")}
-                                    >
-                                        Avg Order Value {sortField === "aov" && (sortDirection === "asc" ? "▲" : "▼")}
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-zinc-850 text-sm text-zinc-300">
-                                {sortedBusinesses.length === 0 ? (
-                                    <tr>
-                                        <td colSpan="4" className="text-center py-10 text-zinc-500">
-                                            No onboarded businesses found.
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    sortedBusinesses.map((biz) => (
-                                        <tr key={biz.id} className="hover:bg-zinc-900/30 transition-colors">
-                                            <td className="py-4 px-6 font-medium text-white">{biz.name}</td>
-                                            <td className="py-4 px-6 text-right">{biz.orders.toLocaleString()}</td>
-                                            <td className="py-4 px-6 text-right font-semibold text-emerald-400">₹{biz.revenue.toLocaleString()}</td>
-                                            <td className="py-4 px-6 text-right">₹{biz.aov.toLocaleString()}</td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                )}
             </main>
+
+            {/* 📋 Application Drawer Detail View */}
+            {selectedReview && (
+                <div className="fixed inset-0 z-[7000] flex justify-end">
+                    {/* Backdrop */}
+                    <div 
+                        onClick={() => setSelectedReview(null)}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" 
+                    />
+                    
+                    {/* Drawer panel */}
+                    <div className="relative w-full max-w-lg bg-[#0d0d11] border-l border-zinc-850 h-full p-8 shadow-2xl flex flex-col justify-between overflow-y-auto z-10 animate-in slide-in-from-right duration-300">
+                        <div className="space-y-6">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <h3 className="text-xl font-bold text-white">{selectedReview.name}</h3>
+                                    <span className="text-xs bg-zinc-850 text-zinc-400 px-2 py-0.5 rounded mt-1.5 inline-block uppercase font-bold tracking-wider">
+                                        {selectedReview.business_type || 'Shop'}
+                                    </span>
+                                </div>
+                                <button 
+                                    onClick={() => setSelectedReview(null)}
+                                    className="text-zinc-500 hover:text-white text-lg font-bold p-1 hover:bg-zinc-900 rounded-lg transition-all"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                            
+                            <hr className="border-zinc-850" />
+                            
+                            <div className="space-y-4">
+                                <h4 className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Business Information</h4>
+                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <p className="text-zinc-500 text-xs">Owner Name</p>
+                                        <p className="text-white font-semibold mt-0.5">{selectedReview.owner_name}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-zinc-500 text-xs">Email Address</p>
+                                        <p className="text-white font-semibold mt-0.5">{selectedReview.email}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-zinc-500 text-xs">Business Phone</p>
+                                        <p className="text-white font-semibold mt-0.5">{selectedReview.business_phone}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-zinc-500 text-xs">URL Slug</p>
+                                        <p className="text-blue-400 font-semibold mt-0.5">/{selectedReview.slug}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <hr className="border-zinc-850" />
+                            
+                            <div className="space-y-4">
+                                <h4 className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Contact & Location</h4>
+                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <p className="text-zinc-500 text-xs">Private Contact Phone</p>
+                                        <p className="text-white font-semibold mt-0.5">{selectedReview.contact_number || 'N/A'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-zinc-500 text-xs">Address / Location</p>
+                                        <p className="text-white font-semibold mt-0.5 truncate max-w-[200px]" title={selectedReview.location_name}>{selectedReview.location_name || 'N/A'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-zinc-500 text-xs">Latitude</p>
+                                        <p className="text-white font-mono mt-0.5">{selectedReview.latitude || 'N/A'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-zinc-500 text-xs">Longitude</p>
+                                        <p className="text-white font-mono mt-0.5">{selectedReview.longitude || 'N/A'}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {selectedReview.approval_status !== 'pending' && (
+                                <>
+                                    <hr className="border-zinc-850" />
+                                    <div className="space-y-4">
+                                        <h4 className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Review Status History</h4>
+                                        <div className="grid grid-cols-2 gap-4 text-sm">
+                                            <div>
+                                                <p className="text-zinc-500 text-xs">Reviewed On</p>
+                                                <p className="text-white font-semibold mt-0.5">
+                                                    {selectedReview.reviewed_at ? new Date(selectedReview.reviewed_at).toLocaleString() : 'N/A'}
+                                                </p>
+                                            </div>
+                                            {selectedReview.review_notes && (
+                                                <div className="col-span-2">
+                                                    <p className="text-zinc-500 text-xs">Review Details / Notes</p>
+                                                    <p className="text-red-400 bg-red-950/20 border border-red-950/30 rounded-xl p-3.5 mt-1.5 text-xs font-semibold leading-relaxed">
+                                                        {selectedReview.review_notes}
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
+                        {selectedReview.approval_status === 'pending' && (
+                            <div className="mt-8 pt-4 border-t border-zinc-850 flex gap-4">
+                                <button
+                                    onClick={() => {
+                                        setShowConfirmModal({
+                                            type: 'approve',
+                                            businessId: selectedReview.id,
+                                            title: 'Approve Merchant',
+                                            message: `Are you sure you want to approve '${selectedReview.name}'? This will allow them to login and access the merchant dashboard immediately.`,
+                                            action: () => {
+                                                handleApproveMerchant(selectedReview.id);
+                                                setSelectedReview(null);
+                                            }
+                                        });
+                                    }}
+                                    className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs py-3 rounded-xl transition-all shadow-md shadow-emerald-600/10 cursor-pointer"
+                                >
+                                    Approve Merchant
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setReviewToReject(selectedReview);
+                                        setShowRejectionModal(true);
+                                        setSelectedReview(null);
+                                    }}
+                                    className="flex-1 bg-[#1a0a0a] hover:bg-[#2e1212] text-red-400 font-semibold text-xs py-3 rounded-xl border border-red-500/15 hover:border-red-500/30 transition-all cursor-pointer"
+                                >
+                                    Reject Application
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* 🔴 Custom Rejection Modal */}
+            {showRejectionModal && (
+                <div className="fixed inset-0 z-[8000] flex items-center justify-center p-4">
+                    <div 
+                        onClick={() => {
+                            setShowRejectionModal(false);
+                            setReviewToReject(null);
+                            setRejectionNotes("");
+                        }}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm" 
+                    />
+                    <div className="relative bg-[#0d0d11] border border-zinc-800 rounded-3xl p-6 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-200">
+                        <h3 className="text-lg font-bold text-white mb-2">Reject Merchant Application</h3>
+                        <p className="text-xs text-zinc-400 mb-4">
+                            Provide comments or reason notes. This information will help the applicant understand why their application was rejected.
+                        </p>
+                        
+                        <textarea
+                            placeholder="Type review rejection comments here (optional)..."
+                            value={rejectionNotes}
+                            onChange={(e) => setRejectionNotes(e.target.value)}
+                            rows="4"
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl p-4 text-xs text-white placeholder-zinc-500 outline-none focus:border-red-500 transition-all resize-none"
+                        />
+                        
+                        <div className="flex gap-4 mt-6">
+                            <button
+                                onClick={() => {
+                                    setShowRejectionModal(false);
+                                    setReviewToReject(null);
+                                    setRejectionNotes("");
+                                }}
+                                className="flex-1 bg-zinc-900 hover:bg-zinc-850 text-zinc-400 hover:text-zinc-200 font-semibold text-xs py-2.5 rounded-xl border border-zinc-800 transition-all cursor-pointer"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleRejectMerchant}
+                                className="flex-1 bg-red-600 hover:bg-red-500 text-white font-semibold text-xs py-2.5 rounded-xl transition-all shadow-md shadow-red-600/10 cursor-pointer"
+                            >
+                                Confirm Rejection
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 🛡️ Custom Confirmation Modal */}
+            {showConfirmModal && (
+                <div className="fixed inset-0 z-[8000] flex items-center justify-center p-4">
+                    <div 
+                        onClick={() => setShowConfirmModal(null)}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm" 
+                    />
+                    <div className="relative bg-[#0d0d11] border border-zinc-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200 text-center">
+                        <div className="w-12 h-12 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center mx-auto mb-4 text-xl">
+                            💡
+                        </div>
+                        <h3 className="text-base font-bold text-white mb-2">{showConfirmModal.title}</h3>
+                        <p className="text-xs text-zinc-400 mb-6 leading-relaxed">
+                            {showConfirmModal.message}
+                        </p>
+                        
+                        <div className="flex gap-4">
+                            <button
+                                onClick={() => setShowConfirmModal(null)}
+                                className="flex-1 bg-zinc-900 hover:bg-zinc-850 text-zinc-400 hover:text-zinc-200 font-semibold text-xs py-2.5 rounded-xl border border-zinc-800 transition-all cursor-pointer"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={showConfirmModal.action}
+                                className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs py-2.5 rounded-xl transition-all shadow-md shadow-blue-600/10 cursor-pointer"
+                            >
+                                Confirm
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
