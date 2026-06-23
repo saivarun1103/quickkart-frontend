@@ -392,7 +392,7 @@ export default function OrderSuccess() {
                   <span className="font-bold text-blue-600">
                     PIN
                   </span>{" "}
-                  at the counter while collecting your order. Please check the items before leaving the store.
+                  at the counter while collecting your order. please check items before leaving the store.
                 </>
               ) : (
                 <>
@@ -400,7 +400,7 @@ export default function OrderSuccess() {
                   <span className="font-bold text-blue-600">
                     Order ID
                   </span>{" "}
-                  at the counter while collecting your order. Please check the items before leaving the store.
+                  at the counter while collecting your order. please check items before leaving the store.
                 </>
               )}
             </p>
