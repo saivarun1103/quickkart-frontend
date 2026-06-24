@@ -470,11 +470,11 @@ export default function FounderDashboard() {
                                 <span className="text-2xl md:text-3xl font-bold tracking-tight text-blue-400 mt-2 block font-mono">{pendingCount}</span>
                             </div>
                             <div className="bg-[#0d0d11] border border-zinc-800/80 rounded-2xl p-5">
-                                <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider block">Approved Stores</span>
+                                <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider block">Approved</span>
                                 <span className="text-2xl md:text-3xl font-bold tracking-tight text-emerald-400 mt-2 block font-mono">{approvedCount}</span>
                             </div>
                             <div className="bg-[#0d0d11] border border-zinc-800/80 rounded-2xl p-5">
-                                <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider block">Rejected Apps</span>
+                                <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider block">Rejected</span>
                                 <span className="text-2xl md:text-3xl font-bold tracking-tight text-red-400 mt-2 block font-mono">{rejectedCount}</span>
                             </div>
                             <div className="bg-[#0d0d11] border border-zinc-800/80 rounded-2xl p-5">
