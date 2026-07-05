@@ -552,7 +552,7 @@ export default function OrdersPage() {
 
                                 outline-none
 
-                                focus:border-blue-500
+                                 focus:border-[#1ea753]
                             "
                         />
 
@@ -562,8 +562,8 @@ export default function OrdersPage() {
                             disabled={verifying}
 
                             className="
-                                bg-blue-600
-                                hover:bg-blue-700
+                                bg-[#1ea753]
+                                hover:bg-[#1ea753]/90
 
                                 disabled:opacity-50
 
@@ -763,7 +763,7 @@ export default function OrdersPage() {
                                     activeFilter === filter.value
 
                                         ? `
-                                            bg-blue-600
+                                            bg-[#1ea753]
                                             text-white
                                         `
 
@@ -863,10 +863,10 @@ export default function OrdersPage() {
 
                             cursor-pointer
 
-                            hover:border-blue-500/40
-                            hover:bg-zinc-900/80
+                             hover:border-[#1ea753]/40
+                             hover:bg-zinc-900/80
 
-                            transition-all
+                             transition-all
                         "
                     >
                         
@@ -928,8 +928,8 @@ export default function OrdersPage() {
                                 gap-2
                             ">
 
-                                <p className="
-                                    text-blue-400
+                                 <p className="
+                                    text-[#1ea753]
                                     font-bold
                                     text-2xl
                                 ">
@@ -1251,10 +1251,10 @@ export default function OrdersPage() {
                                     Total
                                 </span>
 
-                                <span className="
+                                 <span className="
                                     text-2xl
                                     font-bold
-                                    text-blue-400
+                                    text-[#1ea753]
                                 ">
                                     ₹
                                     {
@@ -1369,14 +1369,14 @@ export default function OrdersPage() {
                                         setConfirmModal(null);
                                     }}
 
-                                    className="
-                                        bg-blue-600
-                                        hover:bg-blue-700
+                                     className="
+                                         bg-[#1ea753]
+                                         hover:bg-[#1ea753]/90
 
-                                        px-5
-                                        py-2
+                                         px-5
+                                         py-2
 
-                                        rounded-xl
+                                         rounded-xl
 
                                         transition
                                     "

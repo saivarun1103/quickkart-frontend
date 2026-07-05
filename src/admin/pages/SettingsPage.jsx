@@ -308,7 +308,7 @@ export default function SettingsPage() {
                     pickupVerificationEnabled
 
                         ? `
-                            bg-blue-600
+                            bg-[#1ea753]
                         `
 
                         : `
@@ -627,8 +627,8 @@ export default function SettingsPage() {
 
                     rounded-2xl
 
-                    bg-blue-600
-                    hover:bg-blue-700
+                    bg-[#1ea753]
+                    hover:bg-[#1ea753]/90
 
                     text-white
                     font-medium
@@ -752,8 +752,8 @@ export default function SettingsPage() {
 
                 rounded-2xl
 
-                bg-blue-600
-                hover:bg-blue-700
+                bg-[#1ea753]
+                hover:bg-[#1ea753]/90
 
                 text-white
                 font-medium

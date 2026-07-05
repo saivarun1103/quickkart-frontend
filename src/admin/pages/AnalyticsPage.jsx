@@ -202,7 +202,7 @@ export default function AnalyticsPage() {
                         outline-none
                         text-white
                         w-full md:w-[280px]
-                        focus:border-blue-500
+                        focus:border-[#1ea753]
                     "
 
                     placeholderText="
@@ -296,10 +296,10 @@ export default function AnalyticsPage() {
                             ])
                         }}
                         className="
-                            bg-blue-600
-                            hover:bg-blue-700
-                            px-4
-                            py-2
+                             bg-[#1ea753]
+                             hover:bg-[#1ea753]/90
+                             px-4
+                             py-2
                             rounded-xl
                             text-sm
                             w-full
@@ -395,7 +395,7 @@ export default function AnalyticsPage() {
 
                             mt-3
 
-                            text-blue-400
+                             text-[#1ea753]
                         ">
                             {
                                 analytics?.total_orders || 0

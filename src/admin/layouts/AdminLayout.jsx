@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Header from "../../components/Headers";
+import logoImg from "../../assets/logo.png";
 import {
     Link,
     Outlet,
@@ -87,21 +88,25 @@ export default function AdminLayout() {
                 `}
             >
                 <div className="mb-10">
-
-                    <p className="text-zinc-500 text-sm">
-                        {business?.business_name} Admin
-                    </p>
-
-                    <h1
-                        className="
-                            text-3xl
-                            font-bold
-                            mt-2
-                        "
-                    >
-                        Dashboard
-                    </h1>
-
+                    <div className="flex items-center gap-2 sm:gap-2.5">
+                        <div className="w-10 h-10 flex items-center justify-center shrink-0">
+                            <img
+                                src={logoImg}
+                                alt="GoSkipDQ Logo"
+                                className="w-9 h-9 object-contain" 
+                            />
+                        </div>
+                        <div>
+                            <span className="text-lg sm:text-xl font-black italic tracking-tighter py-1 leading-none block">
+                                <span className="text-emerald-500">Go</span>
+                                <span className="text-white">Skip</span>
+                                <span className="text-emerald-500">DQ</span>
+                            </span>
+                            <span className="text-[10px] text-zinc-500 font-extrabold uppercase tracking-widest leading-none block mt-0.5">
+                                Partner
+                            </span>
+                        </div>
+                    </div>
                 </div>
 
                 <SidebarButton
@@ -123,6 +128,14 @@ export default function AdminLayout() {
                 <SidebarButton
                     title="📊 Analytics"
                     to="/admin/dashboard/analytics"
+                    setSidebarOpen={setSidebarOpen}
+                />
+
+                <div className="space-y-2"></div>
+
+                <SidebarButton
+                    title="📈 Demo Insights"
+                    to="/admin/dashboard/demo-insights"
                     setSidebarOpen={setSidebarOpen}
                 />
 
@@ -251,10 +264,10 @@ function SidebarButton({
                 ${
                     active
                         ? `
-                            bg-blue-600
+                            bg-[#1ea753]
                             text-white
                             shadow-lg
-                            shadow-blue-600/20
+                            shadow-[#1ea753]/20
                         `
                         : `
                             text-zinc-400
@@ -268,4 +281,4 @@ function SidebarButton({
         </Link>
     );
 }
-
+

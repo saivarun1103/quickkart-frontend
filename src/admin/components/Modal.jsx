@@ -119,7 +119,7 @@ export default function Modal({
                         rounded-[32px]
 
                         bg-gradient-to-br
-                        from-blue-500/5
+                        from-[#1ea753]/5
                         via-transparent
                         to-purple-500/5
 

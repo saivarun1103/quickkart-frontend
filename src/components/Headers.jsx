@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_BASE } from "../config";
+import logoImg from "../assets/logo.png";
 
 export default function Header({
     toggleSidebar,
@@ -313,48 +314,27 @@ export default function Header({
                             ☰
                         </button>
 
-                        {/* BUSINESS */}
-                        <div className="flex items-center gap-4">
-
+                        {/* Brand Logo & Name */}
+                        <div 
+                          className="flex items-center gap-2 sm:gap-2.5 cursor group"
+                        >
+                          <div className="w-10 h-10 flex items-center justify-center shrink-0">
                             <img
-                                src={business?.logo_url}
-                                alt="logo"
-
-                                className="
-                                    w-14
-                                    h-14
-
-                                    rounded-2xl
-
-                                    object-cover
-                                "
+                              src={logoImg}
+                              alt="GoSkipDQ Logo"
+                              className="w-9 h-9 object-contain" 
                             />
-
-                            <div>
-
-                                <p
-                                    className="
-                                        text-xs
-                                        uppercase
-                                        tracking-widest
-
-                                        text-zinc-500
-                                    "
-                                >
-                                    Business Admin
-                                </p>
-
-                                <h2
-                                    className="
-                                        text-2xl
-                                        font-bold
-                                    "
-                                >
-                                    {business?.name}
-                                </h2>
-
-                            </div>
-
+                          </div>
+                          <div>
+                            <span className="text-lg sm:text-xl font-black italic tracking-tighter py-1 leading-none block">
+                              <span className="text-emerald-500">Go</span>
+                              <span className="text-white">Skip</span>
+                              <span className="text-emerald-500">DQ</span>
+                            </span>
+                            <span className="text-[10px] text-zinc-500 font-extrabold uppercase tracking-widest leading-none block mt-0.5">
+                              Partner
+                            </span>
+                          </div>
                         </div>
 
                     </div>
@@ -525,34 +505,38 @@ export default function Header({
                         {/* AVATAR */}
                         <button
                             onClick={(e) => {
-
                                 e.stopPropagation();
-
-                                setShowProfileMenu(
-                                    !showProfileMenu
-                                );
+                                setShowProfileMenu(!showProfileMenu);
                             }}
-
                             className="
                                 w-12
                                 h-12
-
                                 rounded-2xl
-
-                                bg-blue-600
-
-                                font-bold
-                                text-lg
-
+                                overflow-hidden
+                                border
+                                border-zinc-800
+                                hover:border-[#1ea753]
                                 transition-all
                                 duration-300
-
                                 hover:scale-105
-
                                 cursor-pointer
+                                bg-[#1ea753]/10
+                                flex
+                                items-center
+                                justify-center
                             "
                         >
-                            {business?.name?.[0]}
+                            {business?.logo_url ? (
+                                <img
+                                    src={business.logo_url}
+                                    alt="logo"
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <span className="font-bold text-lg text-[#1ea753]">
+                                    {business?.name?.[0]}
+                                </span>
+                            )}
                         </button>
 
                         {showProfileMenu && (

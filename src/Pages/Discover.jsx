@@ -14,6 +14,42 @@ export default function Discover() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const [countryCode, setCountryCode] = useState("+91");
+  const [phoneInput, setPhoneInput] = useState("");
+  const [showOrdersModal, setShowOrdersModal] = useState(false);
+
+  const handleFindOrders = (e) => {
+    e.preventDefault();
+    const cleanNum = phoneInput.trim();
+    if (!cleanNum) {
+      alert("Please enter your mobile number");
+      return;
+    }
+    
+    if (countryCode === "+91" && !/^[6-9]\d{9}$/.test(cleanNum)) {
+      alert("Please enter a valid 10-digit mobile number");
+      return;
+    }
+    
+    if (cleanNum.length < 7 || cleanNum.length > 15) {
+      alert("Please enter a valid mobile number");
+      return;
+    }
+    
+    let fullPhone = cleanNum;
+    if (countryCode === "+91" && cleanNum.length === 10) {
+      fullPhone = cleanNum;
+    } else {
+      const codeClean = countryCode.replace("+", "");
+      if (cleanNum.startsWith(codeClean)) {
+        fullPhone = cleanNum;
+      } else {
+        fullPhone = codeClean + cleanNum;
+      }
+    }
+    navigate(`/orders?phone=${fullPhone}`);
+  };
+
   const [isDarkMode, setIsDarkMode] = useState(
     document.documentElement.classList.contains("dark")
   );
@@ -118,6 +154,13 @@ export default function Discover() {
 
           {/* Right Action Items */}
           <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+              <button
+                onClick={() => setShowOrdersModal(true)}
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-850/80 flex items-center justify-center shadow-sm hover:border-emerald-500 dark:hover:border-emerald-500 transition-all duration-300 cursor-pointer"
+                title="View My Orders"
+              >
+                <span className="text-sm sm:text-base">📦</span>
+              </button>
               <ThemeToggle />
               <img
                 src={skipImg}
@@ -198,6 +241,8 @@ export default function Discover() {
             )}
 
         </div>
+
+        {/* Find my orders card removed to reduce layout space */}
 
         {/* LOADING SKELETONS */}
         {loading ? (
@@ -402,6 +447,81 @@ export default function Discover() {
         </footer>
 
         </div>
+
+      {/* FIND MY ORDERS MODAL */}
+      {showOrdersModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div 
+            onClick={() => setShowOrdersModal(false)}
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          />
+          
+          {/* Modal Content */}
+          <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800 rounded-3xl p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 text-left">
+            <button 
+              onClick={() => setShowOrdersModal(false)}
+              className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors cursor-pointer"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div className="flex items-start gap-3.5 mb-4">
+              <span className="text-2xl shrink-0">📦</span>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">Find My Orders</h2>
+                <p className="text-xs text-gray-400 dark:text-zinc-500 mt-1 leading-normal">
+                  Enter the mobile number you used while placing your orders to view your order history.
+                </p>
+              </div>
+            </div>
+
+            <form 
+              onSubmit={(e) => {
+                handleFindOrders(e);
+                setShowOrdersModal(false);
+              }} 
+              className="space-y-4"
+            >
+              <div className="flex gap-2">
+                {/* Country code selector */}
+                <select
+                  value={countryCode}
+                  onChange={(e) => setCountryCode(e.target.value)}
+                  className="bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-white border border-gray-200 dark:border-zinc-700 px-3 py-3 rounded-2xl text-sm font-semibold outline-none focus:border-emerald-500 transition-colors cursor-pointer select-none"
+                >
+                  <option value="+91">+91 (IN)</option>
+                  <option value="+1">+1 (US)</option>
+                  <option value="+44">+44 (UK)</option>
+                  <option value="+61">+61 (AU)</option>
+                </select>
+                
+                {/* Phone input */}
+                <input
+                  type="tel"
+                  placeholder="Enter mobile number"
+                  value={phoneInput}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, "");
+                    setPhoneInput(val);
+                  }}
+                  className="flex-1 bg-gray-50 dark:bg-zinc-800 text-gray-900 dark:text-white border border-gray-200 dark:border-zinc-700 px-4 py-3 rounded-2xl text-sm font-semibold outline-none focus:border-emerald-500 transition-colors shadow-inner"
+                  autoFocus
+                />
+              </div>
+              
+              <button
+                type="submit"
+                className="w-full bg-[#1ea753] hover:bg-[#1ea753]/90 text-white font-extrabold text-sm py-3.5 rounded-2xl shadow-sm transition-all duration-300 active:scale-95 cursor-pointer text-center"
+              >
+                View Orders
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
     );

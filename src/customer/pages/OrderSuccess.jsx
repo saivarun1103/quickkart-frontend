@@ -4,14 +4,15 @@ import VerifiedIcon from "../../admin/components/Fonts/VerifiedIcon";
 import LocationIcon from "../../admin/components/Fonts/LocationIcon";
 import ClipboardIcon from "../../admin/components/Fonts/ClipBoard";
 import InfoIcon from "../../admin/components/Fonts/InfoIcon";
-import WhatsappIcon from "../../admin/components/Fonts/WhatsappIcon";
 import DownloadIcon from "../../admin/components/Fonts/DownloadIcon";
 import { domToPng } from "modern-screenshot";
 import { useRef } from "react";
 import logoImg from "../../assets/logo.png";
+import { useNavigate } from "react-router-dom";
 
 export default function OrderSuccess() {
 
+  const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const location = useLocation();
@@ -169,7 +170,9 @@ export default function OrderSuccess() {
         "
       >
         {/* GoSkipDQ Branding at the top */}
-        <div className="flex items-center justify-center gap-1.5 border-b border-gray-100 pb-4">
+        <div className="flex items-center justify-center gap-1.5 border-b border-gray-100 pb-4 cursor-pointer"
+          onClick={() => navigate("/discover")}
+        >
           <div className="w-8 h-8 rounded-xl bg-white border border-emerald-100/60 flex items-center justify-center shadow-sm">
             <img
               src={logoImg}

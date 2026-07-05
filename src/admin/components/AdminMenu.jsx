@@ -542,7 +542,7 @@ export default function AdminMenu() {
 
                                     rounded-2xl
 
-                                    bg-blue-600
+                                    bg-[#1ea753]
 
                                     text-sm
                                     md:text-base
@@ -551,13 +551,13 @@ export default function AdminMenu() {
                                     font-semibold
 
                                     shadow-lg
-                                    shadow-blue-600/20
+                                    shadow-[#1ea753]/20
 
                                     transition-all
                                     duration-300
 
                                     hover:scale-105
-                                    hover:bg-blue-500
+                                    hover:bg-[#1ea753]/90
 
                                     cursor-pointer
                                 "
@@ -729,7 +729,7 @@ export default function AdminMenu() {
                                                         className="
                                                             text-2xl
                                                             font-bold
-                                                            text-blue-400
+                                                            text-[#1ea753]
                                                             whitespace-nowrap
                                                         "
                                                     >
@@ -797,8 +797,8 @@ export default function AdminMenu() {
 
                                                             rounded-2xl
 
-                                                            bg-blue-600
-                                                            hover:bg-blue-500
+                                                            bg-[#1ea753]
+                                                            hover:bg-[#1ea753]/90
 
                                                             transition-all
 
@@ -937,7 +937,7 @@ export default function AdminMenu() {
 
                                 text-white
 
-                                focus:border-blue-500
+                                focus:border-[#1ea753]
                             "
                         />
 
@@ -971,7 +971,7 @@ export default function AdminMenu() {
 
                                 text-white
 
-                                focus:border-blue-500
+                                focus:border-[#1ea753]
                             "
                         />
 
@@ -1008,7 +1008,7 @@ export default function AdminMenu() {
 
                                 resize-none
 
-                                focus:border-blue-500
+                                focus:border-[#1ea753]
                             "
                         />
                         
@@ -1058,7 +1058,7 @@ export default function AdminMenu() {
 
                                 text-white
 
-                                focus:border-blue-500
+                                focus:border-[#1ea753]
                             "
                         >
 
@@ -1116,7 +1116,7 @@ export default function AdminMenu() {
 
                                     text-white
 
-                                    focus:border-blue-500
+                                    focus:border-[#1ea753]
                                 "
                             />
                         )}
@@ -1151,7 +1151,7 @@ export default function AdminMenu() {
 
                                 text-white
 
-                                focus:border-blue-500
+                                focus:border-[#1ea753]
                             "
                         >
                             <option value="">
@@ -1196,7 +1196,7 @@ export default function AdminMenu() {
 
                                 text-zinc-400
 
-                                hover:border-blue-500
+                                hover:border-[#1ea753]
 
                                 transition-all
                             "
@@ -1243,8 +1243,8 @@ export default function AdminMenu() {
 
                                 rounded-2xl
 
-                                bg-blue-600
-                                hover:bg-blue-500
+                                bg-[#1ea753]
+                                hover:bg-[#1ea753]/90
 
                                 text-white
                                 font-semibold
@@ -1356,7 +1356,7 @@ export default function AdminMenu() {
 
                                 text-white
 
-                                focus:border-blue-500
+                                focus:border-[#1ea753]
                             "
                         />
 
@@ -1391,7 +1391,7 @@ export default function AdminMenu() {
 
                                 text-white
 
-                                focus:border-blue-500
+                                focus:border-[#1ea753]
                             "
                         />
 
@@ -1429,7 +1429,7 @@ export default function AdminMenu() {
 
                                 resize-none
 
-                                focus:border-blue-500
+                                focus:border-[#1ea753]
                             "
                         />
 
@@ -1483,7 +1483,7 @@ export default function AdminMenu() {
 
                                 text-white
 
-                                focus:border-blue-500
+                                focus:border-[#1ea753]
                             "
                         >
 
@@ -1542,7 +1542,7 @@ export default function AdminMenu() {
 
                                     text-white
 
-                                    focus:border-blue-500
+                                    focus:border-[#1ea753]
                                 "
                             />
                         )}
@@ -1578,7 +1578,7 @@ export default function AdminMenu() {
 
                                 text-white
 
-                                focus:border-blue-500
+                                focus:border-[#1ea753]
                             "
                         >
                             <option value="">
@@ -1623,7 +1623,7 @@ export default function AdminMenu() {
 
                                 text-zinc-400
 
-                                hover:border-blue-500
+                                hover:border-[#1ea753]
 
                                 transition-all
                             "
@@ -1670,8 +1670,8 @@ export default function AdminMenu() {
 
                                 rounded-2xl
 
-                                bg-blue-600
-                                hover:bg-blue-500
+                                bg-[#1ea753]
+                                hover:bg-[#1ea753]/90
 
                                 text-white
                                 font-semibold

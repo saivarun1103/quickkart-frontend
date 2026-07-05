@@ -292,8 +292,8 @@ export default function ImageCropModal({
 
                                 rounded-2xl
 
-                                bg-blue-600
-                                hover:bg-blue-500
+                                bg-[#1ea753]
+                                hover:bg-[#1ea753]/90
 
                                 font-semibold
                             "
