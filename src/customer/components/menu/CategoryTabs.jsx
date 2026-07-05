@@ -13,8 +13,8 @@ export default function CategoryTabs({
         z-30
         bg-white/70 dark:bg-zinc-950/70
         backdrop-blur-md
-        py-2
-        mt-6
+        py-3
+        mt-4
         transition-all
         duration-500
         border-b
@@ -26,7 +26,7 @@ export default function CategoryTabs({
       <div
         className="
           flex
-          gap-3
+          gap-2.5
           overflow-x-auto
           scrollbar-hide
         "
@@ -40,16 +40,18 @@ export default function CategoryTabs({
             className={`
               whitespace-nowrap
               px-5
-              py-1
+              py-2
               rounded-2xl
+              text-sm
               font-semibold
               transition-all
               duration-300
+              cursor-pointer
 
               ${
                 activeCategory === category
-                  ? "bg-black text-white shadow-lg dark:bg-[#52c472]"
-                  : "bg-white text-gray-700 dark:bg-zinc-900 dark:text-zinc-200"
+                  ? "bg-[#1ea753] text-white shadow-md shadow-[#1ea753]/25 font-bold"
+                  : "bg-zinc-100 text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400"
               }
             `}
           >

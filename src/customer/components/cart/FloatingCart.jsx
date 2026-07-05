@@ -52,6 +52,7 @@ export default function FloatingCart({ cart, checkout }) {
           transition-all
           duration-300
           hover:scale-[1.02]
+          cursor-pointer
         "
       >
 
@@ -63,7 +64,7 @@ export default function FloatingCart({ cart, checkout }) {
               w-12
               h-12
               rounded-2xl
-              bg-[#52c472]
+              bg-[#1ea753]
               flex
               items-center
               justify-center
@@ -112,7 +113,7 @@ export default function FloatingCart({ cart, checkout }) {
           <p
             className="
               text-sm
-              text-[#52c472]
+              text-[#1ea753]
               font-medium
             "
           >

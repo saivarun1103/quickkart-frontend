@@ -14,10 +14,12 @@ import MenuPage from "./admin/pages/MenuPage";
 import OrdersPage from "./admin/pages/OrdersPage";
 import AnalyticsPage from "./admin/pages/AnalyticsPage";
 import SettingsPage from "./admin/pages/SettingsPage";
+import DemoInsightsPage from "./admin/pages/DemoInsightsPage";
 import { Navigate } from "react-router-dom";
 import OrderSuccess from "./customer/pages/OrderSuccess";
 import Discover from "./Pages/Discover";
 import PrivacyPolicy from "./Pages/PrivacyPolicy";
+import Orders from "./customer/pages/Orders";
 
 export default function App() {  
   return (
@@ -55,6 +57,12 @@ export default function App() {
         <Route
             path="/order-success"
             element={<OrderSuccess />}
+        />
+
+        {/* Orders Page */}
+        <Route
+            path="/orders"
+            element={<Orders />}
         />
 
         {/* LOGIN */}
@@ -138,6 +146,11 @@ export default function App() {
             <Route
                 path="settings"
                 element={<SettingsPage />}
+            />
+
+            <Route
+                path="demo-insights"
+                element={<DemoInsightsPage />}
             />
 
         </Route>

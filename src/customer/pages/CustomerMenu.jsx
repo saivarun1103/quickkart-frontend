@@ -52,6 +52,7 @@ export default function CustomerMenu(){
   ];
   const [showNamePopup, setShowNamePopup] =
     useState(false)
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [showPhonePopup,
     setShowPhonePopup] =
@@ -97,18 +98,18 @@ export default function CustomerMenu(){
 //   const [dietaryFilter, setDietaryFilter] =
 //     useState("All");
   const filteredItems = items.filter((item) => {
-
     const matchesCategory =
         activeCategory === "All"
         ? true
         : item.category === activeCategory;
 
-    // const matchesDietary =
-    //     dietaryFilter === "All"
-    //     ? true
-    //     : item.dietary_type === dietaryFilter;
+    const matchesSearch = 
+        !searchQuery.trim()
+        ? true
+        : item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    return matchesCategory /*&& matchesDietary*/;
+    return matchesCategory && matchesSearch;
   });
 
 
@@ -1427,6 +1428,38 @@ export default function CustomerMenu(){
                 </div>
               )
             }
+            {/* Search Input for Mobile View only */}
+            <div className="mt-4 sm:hidden relative">
+                <input
+                    type="text"
+                    placeholder="Search for items..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="
+                      w-full
+                      bg-zinc-100 dark:bg-zinc-900/60
+                      text-zinc-800 dark:text-white
+                      placeholder-zinc-400 dark:placeholder-zinc-500
+                      rounded-2xl
+                      pl-11
+                      pr-4
+                      py-3.5
+                      text-sm
+                      font-medium
+                      border
+                      border-zinc-200/50 dark:border-zinc-800/80
+                      outline-none
+                      focus:border-[#1ea753]
+                      transition-all
+                    "
+                />
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </span>
+            </div>
+
             <CategoryTabs
                 categories={categories}
                 activeCategory={activeCategory}
@@ -1460,6 +1493,48 @@ export default function CustomerMenu(){
                     "
                 />
             </div> */}
+            {
+              isBusinessOpen && (
+                <FloatingCart
+                  cart={cart}
+                  checkout={() =>
+                    setIsCartOpen(true)
+                  }
+                />
+              )
+            }
+            {
+              isBusinessOpen && (
+                <CartDrawer
+                  isOpen={isCartOpen}
+                  cart={cart}
+                  increaseQty={increaseQty}
+                  decreaseQty={decreaseQty}
+                  removeFromCart={removeFromCart}
+                  checkout={handleCheckoutClick}
+                  isCheckoutLoading={
+                    isCheckoutLoading
+                  }
+                  onClose={() =>
+                    setIsCartOpen(false)
+                  }
+                  showPhonePopup={showPhonePopup}
+                  phoneNumber={phoneNumber}
+                  setPhoneNumber={setPhoneNumber}
+                  continueWithPhone={continueWithPhone}
+                  setShowPhonePopup={setShowPhonePopup}
+                  showNamePopup={showNamePopup}
+                  customerName={customerName}
+                  setCustomerName={setCustomerName}
+                  saveNameAndCheckout={saveNameAndCheckout}
+                  closeNamePopup={() =>
+                    setShowNamePopup(false)
+                  }
+                />
+              )
+            }
+
+            {/* Desktop / Tablet View Grid */}
             <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -1467,112 +1542,126 @@ export default function CustomerMenu(){
                     duration: 0.7,
                     ease: "easeOut"
                 }}
-                className="
-                    grid
-                    grid-cols-1
-                    sm:grid-cols-2
-                    lg:grid-cols-3
-                    gap-6
-                    mt-8
-                "
+                className="hidden sm:grid grid-cols-2 lg:grid-cols-3 gap-6 mt-8"
             >
-                {
-                  isBusinessOpen && (
-
-                    <FloatingCart
-                      cart={cart}
-                      checkout={() =>
-                        setIsCartOpen(true)
-                      }
-                    />
-                  )
-                }
-                {
-                  isBusinessOpen && (
-
-                    <CartDrawer
-                      isOpen={isCartOpen}
-                      cart={cart}
-                      increaseQty={increaseQty}
-                      decreaseQty={decreaseQty}
-                      removeFromCart={removeFromCart}
-                      checkout={handleCheckoutClick}
-                      isCheckoutLoading={
-                        isCheckoutLoading
-                      }
-                      onClose={() =>
-                        setIsCartOpen(false)
-                      }
-
-                      showPhonePopup={showPhonePopup}
-                      phoneNumber={phoneNumber}
-                      setPhoneNumber={setPhoneNumber}
-
-                      continueWithPhone=
-                        {continueWithPhone}
-
-                      setShowPhonePopup=
-                        {setShowPhonePopup}
-
-                      showNamePopup={showNamePopup}
-                      customerName={customerName}
-                      setCustomerName={setCustomerName}
-                      saveNameAndCheckout={
-                        saveNameAndCheckout
-                      }
-
-                      closeNamePopup={() =>
-                        setShowNamePopup(false)
-                      }
-                    />
-                  )
-                }
                 {[...filteredItems]
-
-                .sort((a, b) => {
-
-                    if (a.available === b.available)
-                        return 0;
-
-                    return a.available ? -1 : 1;
-                })
-
+                .sort((a, b) => (a.available === b.available ? 0 : a.available ? -1 : 1))
                 .map((item, index) => {
-
-                    const cartItem = cart.find(
-                    i => i.id === item.id
-                    );
-
+                    const cartItem = cart.find(i => i.id === item.id);
                     return (
-                    <FoodCard
-                      key={item.id}
-                      item={item}
-                      cartItem={cartItem}
+                        <FoodCard
+                            key={item.id}
+                            item={item}
+                            cartItem={cartItem}
+                            addToCart={isBusinessOpen ? addToCart : () => {}}
+                            increaseQty={isBusinessOpen ? increaseQty : () => {}}
+                            decreaseQty={isBusinessOpen ? decreaseQty : () => {}}
+                            businessClosed={!isBusinessOpen}
+                            index={index}
+                        />
+                    );
+                })}
+            </motion.div>
 
-                      addToCart={
-                        isBusinessOpen
-                          ? addToCart
-                          : () => {}
-                      }
-
-                      increaseQty={
-                        isBusinessOpen
-                          ? increaseQty
-                          : () => {}
-                      }
-
-                      decreaseQty={
-                        isBusinessOpen
-                          ? decreaseQty
-                          : () => {}
-                      }
-
-                      businessClosed={
-                        !isBusinessOpen
-                      }
-
-                      index={index}
-                    />
+            {/* Mobile View Only List Layout */}
+            <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                    duration: 0.7,
+                    ease: "easeOut"
+                }}
+                className="flex flex-col gap-4 mt-6 sm:hidden"
+            >
+                <h2 className="text-lg font-extrabold text-zinc-800 dark:text-zinc-200 mb-1 px-1">
+                    Popular Items
+                </h2>
+                {[...filteredItems]
+                .sort((a, b) => (a.available === b.available ? 0 : a.available ? -1 : 1))
+                .map((item) => {
+                    const cartItem = cart.find(i => i.id === item.id);
+                    return (
+                        <div 
+                            key={item.id}
+                            className="bg-white dark:bg-zinc-900 rounded-[1.75rem] p-3.5 flex gap-4 border border-zinc-100/50 dark:border-zinc-800/80 shadow-sm relative transition-all"
+                        >
+                            {/* Product Image */}
+                            <div className="relative w-24 h-24 rounded-2xl overflow-hidden bg-zinc-100 dark:bg-zinc-800 shrink-0 shadow-inner">
+                                <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                                {!item.available && (
+                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                        <span className="text-[10px] font-bold text-white bg-black/40 px-2 py-1 rounded-md">Out of Stock</span>
+                                    </div>
+                                )}
+                            </div>
+                            
+                            {/* Product Details */}
+                            <div className="flex-1 flex flex-col justify-between py-0.5">
+                                <div>
+                                    <div className="flex justify-between items-start gap-1">
+                                        <h3 className="font-extrabold text-[15px] text-zinc-900 dark:text-white leading-tight">
+                                            {item.name}
+                                        </h3>
+                                        {item.dietary_type && (
+                                            <span className={`w-3.5 h-3.5 border flex items-center justify-center shrink-0 rounded-sm p-0.5 ${
+                                                item.dietary_type === "Veg" ? "border-green-600" : "border-red-600"
+                                            }`}>
+                                                <span className={`w-1.5 h-1.5 rounded-full ${
+                                                    item.dietary_type === "Veg" ? "bg-green-600" : "bg-red-600"
+                                                }`} />
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-1 line-clamp-2 leading-snug">
+                                        {item.description}
+                                    </p>
+                                </div>
+                                
+                                <div className="flex justify-between items-center mt-2">
+                                    <span className="font-black text-base text-[#1ea753]">
+                                        ₹{item.price}
+                                    </span>
+                                    
+                                    {/* Action Buttons */}
+                                    <div className="flex items-center">
+                                        {!item.available ? (
+                                            <span className="text-[10px] font-bold text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-3 py-1.5 rounded-xl">
+                                                Sold Out
+                                            </span>
+                                        ) : !isBusinessOpen ? (
+                                            <span className="text-[10px] font-bold text-zinc-500 bg-zinc-800 px-3 py-1.5 rounded-xl">
+                                                Closed
+                                            </span>
+                                        ) : cartItem ? (
+                                            <div className="flex items-center gap-2 bg-[#1ea753]/10 dark:bg-[#1ea753]/20 rounded-xl px-1.5 py-1 border border-[#1ea753]/20">
+                                                <button
+                                                    onClick={() => decreaseQty(item.id)}
+                                                    className="w-6 h-6 rounded-lg bg-white dark:bg-zinc-800 text-black dark:text-white font-extrabold flex items-center justify-center text-xs shadow-sm cursor-pointer hover:scale-105 active:scale-95"
+                                                >
+                                                    -
+                                                </button>
+                                                <span className="text-xs font-bold text-[#1ea753] min-w-[12px] text-center">
+                                                    {cartItem.qty}
+                                                </span>
+                                                <button
+                                                    onClick={() => increaseQty(item.id)}
+                                                    className="w-6 h-6 rounded-lg bg-[#1ea753] text-white font-extrabold flex items-center justify-center text-xs cursor-pointer hover:scale-105 active:scale-95"
+                                                >
+                                                    +
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <button
+                                                onClick={() => addToCart(item)}
+                                                className="px-4.5 py-1.5 bg-[#1ea753] hover:bg-[#1ea753]/90 text-white rounded-xl text-xs font-extrabold transition-all shadow-sm cursor-pointer hover:scale-105 active:scale-95"
+                                            >
+                                                Add
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     );
                 })}
             </motion.div>
