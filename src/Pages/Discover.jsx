@@ -156,7 +156,7 @@ export default function Discover() {
           <div className="flex items-center gap-3 sm:gap-4 shrink-0">
               <button
                 onClick={() => setShowOrdersModal(true)}
-                className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-850/80 flex items-center justify-center shadow-sm hover:border-emerald-500 dark:hover:border-emerald-500 transition-all duration-300 cursor-pointer"
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-emerald-900/40 flex items-center justify-center shadow-sm hover:border-emerald-300 dark:hover:border-emerald-300 transition-all duration-300 cursor-pointer"
                 title="View My Orders"
               >
                 <span className="text-sm sm:text-base">📦</span>

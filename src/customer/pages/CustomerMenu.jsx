@@ -1584,9 +1584,9 @@ export default function CustomerMenu(){
                       placeholder-zinc-400 dark:placeholder-zinc-500
                       rounded-2xl
                       pl-11
-                      pr-4
+                      pr-10
                       py-3.5
-                      text-sm
+                      text-base
                       font-medium
                       border
                       border-zinc-200/50 dark:border-zinc-800/80
@@ -1600,6 +1600,15 @@ export default function CustomerMenu(){
                         <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                 </span>
+                {searchQuery && (
+                    <button
+                        type="button"
+                        onClick={() => setSearchQuery("")}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-350 dark:hover:bg-zinc-700 hover:text-zinc-800 dark:hover:text-white cursor-pointer z-10 flex items-center justify-center text-[10px] font-bold transition-all shadow-sm"
+                    >
+                        ✕
+                    </button>
+                )}
             </div>
 
             <CategoryTabs
