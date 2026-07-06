@@ -14,7 +14,7 @@ import MenuPage from "./admin/pages/MenuPage";
 import OrdersPage from "./admin/pages/OrdersPage";
 import AnalyticsPage from "./admin/pages/AnalyticsPage";
 import SettingsPage from "./admin/pages/SettingsPage";
-import DemoInsightsPage from "./admin/pages/DemoInsightsPage";
+import InsightsPage from "./admin/pages/InsightsPage";
 import { Navigate } from "react-router-dom";
 import OrderSuccess from "./customer/pages/OrderSuccess";
 import Discover from "./Pages/Discover";
@@ -149,8 +149,8 @@ export default function App() {
             />
 
             <Route
-                path="demo-insights"
-                element={<DemoInsightsPage />}
+                path="insights"
+                element={<InsightsPage />}
             />
 
         </Route>

@@ -134,8 +134,8 @@ export default function AdminLayout() {
                 <div className="space-y-2"></div>
 
                 <SidebarButton
-                    title="📈 Demo Insights"
-                    to="/admin/dashboard/demo-insights"
+                    title="📈 Insights"
+                    to="/admin/dashboard/insights"
                     setSidebarOpen={setSidebarOpen}
                 />
 

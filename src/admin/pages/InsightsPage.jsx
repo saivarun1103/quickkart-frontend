@@ -3,7 +3,7 @@ import { API_BASE } from "../../config";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
-export default function DemoInsightsPage() {
+export default function InsightsPage() {
     const [selectedTab, setSelectedTab] = useState("Month"); // "Today", "Week", "Month", "Custom"
     const [dateRange, setDateRange] = useState([
         new Date(new Date().getFullYear(), new Date().getMonth(), 1), // Default to start of month
@@ -317,7 +317,7 @@ export default function DemoInsightsPage() {
 
             {/* Header section */}
             <div className="mb-6">
-                <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">Demo Insights</h1>
+                <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">Insights</h1>
                 <p className="text-zinc-500 text-xs md:text-sm mt-1">Real-time performance and consumer insights synced from database</p>
             </div>
 
