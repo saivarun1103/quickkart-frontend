@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import FoodCard from "../components/menu/FoodCard";
 import BusinessHeader from "../components/layout/BusinessHeader";
@@ -15,6 +15,8 @@ import skipImgDark from "../../assets/queue_skip_transparent_white.png";
 
 export default function CustomerMenu(){
   const navigate = useNavigate();
+  const isScrollingFromTabClick = useRef(false);
+  const scrollTimeout = useRef(null);
   const [isDarkMode, setIsDarkMode] = useState(
     document.documentElement.classList.contains("dark")
   );
@@ -31,6 +33,9 @@ export default function CustomerMenu(){
   const skipImg = isDarkMode ? skipImgDark : skipImgLight;
 
   const [items, setItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [cart, setCart] = useState([]);
   const { businessSlug, sessionToken } =
   useParams();
@@ -44,12 +49,6 @@ export default function CustomerMenu(){
   useState("All");
   const [slug, setSlug] =
   useState("");
-  const categories = [
-    "All",
-    ...new Set(
-        items.map(item => item.category)
-    )
-  ];
   const [showNamePopup, setShowNamePopup] =
     useState(false)
   const [searchQuery, setSearchQuery] = useState("");
@@ -98,19 +97,127 @@ export default function CustomerMenu(){
 //   const [dietaryFilter, setDietaryFilter] =
 //     useState("All");
   const filteredItems = items.filter((item) => {
-    const matchesCategory =
-        activeCategory === "All"
-        ? true
-        : item.category === activeCategory;
-
     const matchesSearch = 
-        !searchQuery.trim()
+        !debouncedSearchQuery.trim()
         ? true
-        : item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()));
+        : item.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+          (item.description && item.description.toLowerCase().includes(debouncedSearchQuery.toLowerCase()));
 
-    return matchesCategory && matchesSearch;
+    return matchesSearch;
   });
+
+  const uniqueCategories = [...new Set(items.map(item => item.category))].sort((a, b) => a.localeCompare(b));
+  const categories = ["All", ...uniqueCategories];
+
+  // Group filtered items by category, sorted available-first, then alphabetically by name
+  const groupedItems = {};
+  uniqueCategories.forEach(cat => {
+    const catItems = filteredItems.filter(item => item.category === cat);
+    if (catItems.length > 0) {
+      groupedItems[cat] = catItems.sort((a, b) => {
+        if (a.available !== b.available) {
+          return a.available ? -1 : 1;
+        }
+        return a.name.localeCompare(b.name);
+      });
+    }
+  });
+
+  // Handle smooth jump/scroll when category filter is clicked
+  const handleCategoryClick = (category) => {
+    setActiveCategory(category);
+    isScrollingFromTabClick.current = true;
+    
+    if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+    
+    if (category === "All") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      const isMobile = window.innerWidth < 640;
+      const targetId = isMobile ? `category-sec-mobile-${category}` : `category-sec-${category}`;
+      const element = document.getElementById(targetId);
+      
+      if (element) {
+        const yOffset = isMobile ? -100 : -120;
+        const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        window.scrollTo({ top: y, behavior: "smooth" });
+      }
+    }
+
+    // Reset scroll-trigger lock flag after smooth scroll completes (approx 800ms)
+    scrollTimeout.current = setTimeout(() => {
+      isScrollingFromTabClick.current = false;
+    }, 800);
+  };
+
+  // Scrollspy effect: Sync active category tab on manual window scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (isScrollingFromTabClick.current) return;
+      if (uniqueCategories.length === 0) return;
+
+      const isMobile = window.innerWidth < 640;
+      
+      // Get all section DOM elements with their category name
+      const categorySections = uniqueCategories.map(cat => {
+        const id = isMobile ? `category-sec-mobile-${cat}` : `category-sec-${cat}`;
+        return { category: cat, element: document.getElementById(id) };
+      });
+
+      // Offset check threshold based on header + tab bar height
+      const threshold = isMobile ? 120 : 150;
+      let currentCategory = "All";
+
+      // If close to the very top, highlight "All"
+      if (window.scrollY < 80) {
+        currentCategory = "All";
+      } else {
+        // Find the last section whose top is <= threshold
+        for (let i = 0; i < categorySections.length; i++) {
+          const { category, element } = categorySections[i];
+          if (element) {
+            const rect = element.getBoundingClientRect();
+            if (rect.top <= threshold + 10) {
+              currentCategory = category;
+            }
+          }
+        }
+      }
+
+      if (currentCategory !== activeCategory) {
+        setActiveCategory(currentCategory);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    // Run once initially to set the correct state on load
+    handleScroll();
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+    };
+  }, [uniqueCategories, activeCategory]);
+
+  // Handle debounced search query state to show loading skeletons during search typing
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setDebouncedSearchQuery("");
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+      setIsSearching(false);
+    }, 1000); // 1.0 second delay (nice visual skeleton loading feedback!)
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchQuery]);
 
 
   useEffect(() => {
@@ -242,6 +349,7 @@ export default function CustomerMenu(){
           setItems(
             data.items
           )
+          setIsLoading(false);
       })
 
       .catch(err => {
@@ -250,6 +358,7 @@ export default function CustomerMenu(){
             "MENU ERROR:",
             err
           )
+          setIsLoading(false);
       })
 
   }, [slug]);
@@ -1182,6 +1291,39 @@ export default function CustomerMenu(){
       </div>
     );
   }
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#ededed] dark:bg-black transition-colors duration-500 max-w-7xl mx-auto p-5 pb-40 select-none">
+        {/* Brand Navbar Skeleton */}
+        <header className="sticky top-0 z-50 backdrop-blur-md bg-white/70 dark:bg-zinc-950/70 border-b border-emerald-500/5 dark:border-emerald-500/10 px-5 py-2 transition-all duration-500 mb-6">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="h-9 w-32 bg-zinc-200 dark:bg-zinc-900 rounded-xl animate-pulse" />
+            <div className="h-9 w-24 bg-zinc-200 dark:bg-zinc-900 rounded-xl animate-pulse" />
+          </div>
+        </header>
+
+        {/* Business Header Skeleton */}
+        <div className="w-full min-h-[320px] bg-zinc-200 dark:bg-zinc-900 rounded-[32px] animate-pulse flex flex-col justify-end p-6">
+          <div className="w-24 h-24 bg-zinc-300 dark:bg-zinc-800 rounded-3xl animate-pulse mb-5" />
+          <div className="h-8 w-1/3 bg-zinc-300 dark:bg-zinc-800 rounded-xl animate-pulse" />
+          <div className="flex gap-3 mt-5">
+            <div className="h-6 w-20 bg-zinc-300 dark:bg-zinc-800 rounded-full animate-pulse" />
+            <div className="h-6 w-24 bg-zinc-300 dark:bg-zinc-800 rounded-full animate-pulse" />
+          </div>
+        </div>
+
+        {/* Category Tabs Skeleton */}
+        <div className="flex gap-2.5 overflow-x-auto mt-6 py-3 scrollbar-hide">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="h-9 w-20 bg-zinc-200 dark:bg-zinc-900 rounded-2xl animate-pulse shrink-0" />
+          ))}
+        </div>
+
+        {/* Items List Skeleton */}
+        <MenuSkeleton />
+      </div>
+    );
+  }
  
   return (
     <div className="min-h-screen bg-[#ededed] dark:bg-black transition-colors duration-500">
@@ -1428,8 +1570,8 @@ export default function CustomerMenu(){
                 </div>
               )
             }
-            {/* Search Input for Mobile View only */}
-            <div className="mt-4 sm:hidden relative">
+            {/* Search Input for Desktop and Mobile View */}
+            <div className="mt-4 w-full relative">
                 <input
                     type="text"
                     placeholder="Search for items..."
@@ -1463,7 +1605,7 @@ export default function CustomerMenu(){
             <CategoryTabs
                 categories={categories}
                 activeCategory={activeCategory}
-                setActiveCategory={setActiveCategory}
+                setActiveCategory={handleCategoryClick}
             />
 
             {/* <DietaryFilter
@@ -1534,137 +1676,174 @@ export default function CustomerMenu(){
               )
             }
 
-            {/* Desktop / Tablet View Grid */}
-            <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                    duration: 0.7,
-                    ease: "easeOut"
-                }}
-                className="hidden sm:grid grid-cols-2 lg:grid-cols-3 gap-6 mt-8"
-            >
-                {[...filteredItems]
-                .sort((a, b) => (a.available === b.available ? 0 : a.available ? -1 : 1))
-                .map((item, index) => {
-                    const cartItem = cart.find(i => i.id === item.id);
-                    return (
-                        <FoodCard
-                            key={item.id}
-                            item={item}
-                            cartItem={cartItem}
-                            addToCart={isBusinessOpen ? addToCart : () => {}}
-                            increaseQty={isBusinessOpen ? increaseQty : () => {}}
-                            decreaseQty={isBusinessOpen ? decreaseQty : () => {}}
-                            businessClosed={!isBusinessOpen}
-                            index={index}
-                        />
-                    );
-                })}
-            </motion.div>
-
-            {/* Mobile View Only List Layout */}
-            <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                    duration: 0.7,
-                    ease: "easeOut"
-                }}
-                className="flex flex-col gap-4 mt-6 sm:hidden"
-            >
-                <h2 className="text-lg font-extrabold text-zinc-800 dark:text-zinc-200 mb-1 px-1">
-                    Popular Items
-                </h2>
-                {[...filteredItems]
-                .sort((a, b) => (a.available === b.available ? 0 : a.available ? -1 : 1))
-                .map((item) => {
-                    const cartItem = cart.find(i => i.id === item.id);
-                    return (
+            {isSearching ? (
+              <MenuSkeleton />
+            ) : Object.keys(groupedItems).length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 px-4 text-center select-none">
+                <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-900/60 rounded-full flex items-center justify-center mb-4 text-2xl border border-zinc-200/50 dark:border-zinc-800/80 shadow-sm">
+                  🔍
+                </div>
+                <h3 className="text-lg font-extrabold text-zinc-800 dark:text-zinc-200">
+                  No results found
+                </h3>
+                <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1.5 max-w-xs leading-normal">
+                  We couldn't find any items matching "{searchQuery}". Try adjusting your keywords or browse other categories!
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* Desktop / Tablet View Grid */}
+                <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                        duration: 0.7,
+                        ease: "easeOut"
+                    }}
+                    className="hidden sm:flex flex-col gap-10 mt-8"
+                >
+                    {Object.keys(groupedItems).map(categoryName => (
                         <div 
-                            key={item.id}
-                            className="bg-white dark:bg-zinc-900 rounded-[1.75rem] p-3.5 flex gap-4 border border-zinc-100/50 dark:border-zinc-800/80 shadow-sm relative transition-all"
+                            key={categoryName} 
+                            id={`category-sec-${categoryName}`}
+                            className="scroll-mt-32"
                         >
-                            {/* Product Image */}
-                            <div className="relative w-24 h-24 rounded-2xl overflow-hidden bg-zinc-100 dark:bg-zinc-800 shrink-0 shadow-inner">
-                                <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                                {!item.available && (
-                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                                        <span className="text-[10px] font-bold text-white bg-black/40 px-2 py-1 rounded-md">Out of Stock</span>
-                                    </div>
-                                )}
-                            </div>
-                            
-                            {/* Product Details */}
-                            <div className="flex-1 flex flex-col justify-between py-0.5">
-                                <div>
-                                    <div className="flex justify-between items-start gap-1">
-                                        <h3 className="font-extrabold text-[15px] text-zinc-900 dark:text-white leading-tight">
-                                            {item.name}
-                                        </h3>
-                                        {item.dietary_type && (
-                                            <span className={`w-3.5 h-3.5 border flex items-center justify-center shrink-0 rounded-sm p-0.5 ${
-                                                item.dietary_type === "Veg" ? "border-green-600" : "border-red-600"
-                                            }`}>
-                                                <span className={`w-1.5 h-1.5 rounded-full ${
-                                                    item.dietary_type === "Veg" ? "bg-green-600" : "bg-red-600"
-                                                }`} />
-                                            </span>
-                                        )}
-                                    </div>
-                                    <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-1 line-clamp-2 leading-snug">
-                                        {item.description}
-                                    </p>
-                                </div>
-                                
-                                <div className="flex justify-between items-center mt-2">
-                                    <span className="font-black text-base text-[#1ea753]">
-                                        ₹{item.price}
-                                    </span>
-                                    
-                                    {/* Action Buttons */}
-                                    <div className="flex items-center">
-                                        {!item.available ? (
-                                            <span className="text-[10px] font-bold text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-3 py-1.5 rounded-xl">
-                                                Sold Out
-                                            </span>
-                                        ) : !isBusinessOpen ? (
-                                            <span className="text-[10px] font-bold text-zinc-500 bg-zinc-800 px-3 py-1.5 rounded-xl">
-                                                Closed
-                                            </span>
-                                        ) : cartItem ? (
-                                            <div className="flex items-center gap-2 bg-[#1ea753]/10 dark:bg-[#1ea753]/20 rounded-xl px-1.5 py-1 border border-[#1ea753]/20">
-                                                <button
-                                                    onClick={() => decreaseQty(item.id)}
-                                                    className="w-6 h-6 rounded-lg bg-white dark:bg-zinc-800 text-black dark:text-white font-extrabold flex items-center justify-center text-xs shadow-sm cursor-pointer hover:scale-105 active:scale-95"
-                                                >
-                                                    -
-                                                </button>
-                                                <span className="text-xs font-bold text-[#1ea753] min-w-[12px] text-center">
-                                                    {cartItem.qty}
-                                                </span>
-                                                <button
-                                                    onClick={() => increaseQty(item.id)}
-                                                    className="w-6 h-6 rounded-lg bg-[#1ea753] text-white font-extrabold flex items-center justify-center text-xs cursor-pointer hover:scale-105 active:scale-95"
-                                                >
-                                                    +
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <button
-                                                onClick={() => addToCart(item)}
-                                                className="px-4.5 py-1.5 bg-[#1ea753] hover:bg-[#1ea753]/90 text-white rounded-xl text-xs font-extrabold transition-all shadow-sm cursor-pointer hover:scale-105 active:scale-95"
-                                            >
-                                                Add
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
+                            <h2 className="text-xl font-extrabold text-zinc-800 dark:text-zinc-200 mb-5 pb-2 border-b border-zinc-150 dark:border-zinc-800/80">
+                                {categoryName}
+                            </h2>
+                            <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
+                                {groupedItems[categoryName].map((item, index) => {
+                                    const cartItem = cart.find(i => i.id === item.id);
+                                    return (
+                                        <FoodCard
+                                            key={item.id}
+                                            item={item}
+                                            cartItem={cartItem}
+                                            addToCart={isBusinessOpen ? addToCart : () => {}}
+                                            increaseQty={isBusinessOpen ? increaseQty : () => {}}
+                                            decreaseQty={isBusinessOpen ? decreaseQty : () => {}}
+                                            businessClosed={!isBusinessOpen}
+                                            index={index}
+                                        />
+                                    );
+                                })}
                             </div>
                         </div>
-                    );
-                })}
-            </motion.div>
+                    ))}
+                </motion.div>
+
+                {/* Mobile View Only List Layout */}
+                <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                        duration: 0.7,
+                        ease: "easeOut"
+                    }}
+                    className="flex flex-col gap-8 mt-6 sm:hidden"
+                >
+                    {Object.keys(groupedItems).map(categoryName => (
+                        <div 
+                            key={categoryName} 
+                            id={`category-sec-mobile-${categoryName}`}
+                            className="scroll-mt-28"
+                        >
+                            <h2 className="text-base font-extrabold text-zinc-800 dark:text-zinc-200 mb-3 pb-1 border-b border-zinc-100 dark:border-zinc-800/80 px-1">
+                                {categoryName}
+                            </h2>
+                            <div className="flex flex-col gap-4">
+                                {groupedItems[categoryName].map((item) => {
+                                    const cartItem = cart.find(i => i.id === item.id);
+                                    return (
+                                        <div 
+                                            key={item.id}
+                                            className="bg-white dark:bg-zinc-900 rounded-[1.75rem] p-3.5 flex gap-4 border border-zinc-100/50 dark:border-zinc-800/80 shadow-sm relative transition-all"
+                                        >
+                                            {/* Product Image */}
+                                            <div className="relative w-24 h-24 rounded-2xl overflow-hidden bg-zinc-100 dark:bg-zinc-800 shrink-0 shadow-inner">
+                                                <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                                                {!item.available && (
+                                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                                        <span className="text-[10px] font-bold text-white bg-black/40 px-2 py-1 rounded-md">Out of Stock</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            
+                                            {/* Product Details */}
+                                            <div className="flex-1 flex flex-col justify-between py-0.5">
+                                                <div>
+                                                    <div className="flex justify-between items-start gap-1">
+                                                        <h3 className="font-extrabold text-[15px] text-zinc-900 dark:text-white leading-tight">
+                                                            {item.name}
+                                                        </h3>
+                                                        {item.dietary_type && (
+                                                            <span className={`w-3.5 h-3.5 border flex items-center justify-center shrink-0 rounded-sm p-0.5 ${
+                                                                item.dietary_type === "Veg" ? "border-green-600" : "border-red-600"
+                                                            }`}>
+                                                                <span className={`w-1.5 h-1.5 rounded-full ${
+                                                                    item.dietary_type === "Veg" ? "bg-green-600" : "bg-red-600"
+                                                                }`} />
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-1 line-clamp-2 leading-snug">
+                                                        {item.description}
+                                                    </p>
+                                                </div>
+                                                
+                                                <div className="flex justify-between items-center mt-2">
+                                                    <span className="font-black text-base text-[#1ea753]">
+                                                        ₹{item.price}
+                                                    </span>
+                                                    
+                                                    {/* Action Buttons */}
+                                                    <div className="flex items-center">
+                                                        {!item.available ? (
+                                                            <span className="text-[10px] font-bold text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-3 py-1.5 rounded-xl">
+                                                                Sold Out
+                                                            </span>
+                                                        ) : !isBusinessOpen ? (
+                                                            <span className="text-[10px] font-bold text-zinc-500 bg-zinc-800 px-3 py-1.5 rounded-xl">
+                                                                Closed
+                                                            </span>
+                                                        ) : cartItem ? (
+                                                            <div className="flex items-center gap-2 bg-[#1ea753]/10 dark:bg-[#1ea753]/20 rounded-xl px-1.5 py-1 border border-[#1ea753]/20">
+                                                                <button
+                                                                    onClick={() => decreaseQty(item.id)}
+                                                                    className="w-6 h-6 rounded-lg bg-white dark:bg-zinc-800 text-black dark:text-white font-extrabold flex items-center justify-center text-xs shadow-sm cursor-pointer hover:scale-105 active:scale-95"
+                                                                >
+                                                                    -
+                                                                </button>
+                                                                <span className="text-xs font-bold text-[#1ea753] min-w-[12px] text-center">
+                                                                    {cartItem.qty}
+                                                                </span>
+                                                                <button
+                                                                    onClick={() => increaseQty(item.id)}
+                                                                    className="w-6 h-6 rounded-lg bg-[#1ea753] text-white font-extrabold flex items-center justify-center text-xs cursor-pointer hover:scale-105 active:scale-95"
+                                                                >
+                                                                    +
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => addToCart(item)}
+                                                                className="px-4.5 py-1.5 bg-[#1ea753] hover:bg-[#1ea753]/90 text-white rounded-xl text-xs font-extrabold transition-all shadow-sm cursor-pointer hover:scale-105 active:scale-95"
+                                                            >
+                                                                Add
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    ))}
+                </motion.div>
+              </>
+            )}
         </div>
         {isVerifyingPayment && (
           <div className="fixed inset-0 z-[200] bg-black/75 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center select-none">
@@ -1695,4 +1874,50 @@ export default function CustomerMenu(){
     //         CUSTOMER MENU WORKING
     //     </div>
     // )
+} 
+
+function MenuSkeleton() {
+  return (
+    <>
+      {/* Desktop Skeleton Grid */}
+      <div className="hidden sm:grid grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div key={i} className="bg-white dark:bg-zinc-900 rounded-[2rem] p-4 border border-zinc-100 dark:border-zinc-800/80 shadow-sm flex flex-col justify-between h-[360px] select-none">
+            <div>
+              <div className="w-full h-48 bg-zinc-200 dark:bg-zinc-800/60 rounded-3xl animate-pulse" />
+              <div className="px-1 mt-4">
+                <div className="h-5 w-2/3 bg-zinc-200 dark:bg-zinc-800/60 rounded-lg animate-pulse" />
+                <div className="h-3.5 w-full bg-zinc-150 dark:bg-zinc-800/40 rounded-lg animate-pulse mt-3.5" />
+                <div className="h-3.5 w-4/5 bg-zinc-150 dark:bg-zinc-800/40 rounded-lg animate-pulse mt-2" />
+              </div>
+            </div>
+            <div className="px-1 mt-5 flex justify-between items-center">
+              <div className="h-6 w-16 bg-zinc-200 dark:bg-zinc-800/60 rounded-lg animate-pulse" />
+              <div className="h-8 w-20 bg-zinc-200 dark:bg-zinc-800/60 rounded-xl animate-pulse" />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Mobile Skeleton List */}
+      <div className="flex flex-col gap-4 mt-6 sm:hidden">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="bg-white dark:bg-zinc-900 rounded-[1.75rem] p-3.5 flex gap-4 border border-zinc-100/50 dark:border-zinc-800/80 shadow-sm select-none">
+            <div className="w-24 h-24 bg-zinc-200 dark:bg-zinc-800/60 rounded-2xl animate-pulse shrink-0" />
+            <div className="flex-1 flex flex-col justify-between py-0.5">
+              <div>
+                <div className="h-4.5 w-1/2 bg-zinc-200 dark:bg-zinc-800/60 rounded-lg animate-pulse" />
+                <div className="h-3 w-full bg-zinc-150 dark:bg-zinc-800/40 rounded-lg animate-pulse mt-2.5" />
+                <div className="h-3 w-3/4 bg-zinc-150 dark:bg-zinc-800/40 rounded-lg animate-pulse mt-1.5" />
+              </div>
+              <div className="flex justify-between items-center mt-2.5">
+                <div className="h-5 w-12 bg-zinc-200 dark:bg-zinc-800/60 rounded-lg animate-pulse" />
+                <div className="h-7 w-16 bg-zinc-200 dark:bg-zinc-800/60 rounded-xl animate-pulse" />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  );
 } 
