@@ -96,18 +96,25 @@ export default function InsightsPage() {
             }).format(val);
         };
 
-        // Formatted metric cards
-        const metrics = [
-            { label: "Total Orders", value: totalOrdersCount.toLocaleString("en-IN"), change: "+18.8%", trend: "up" },
-            { label: "Total Revenue", value: formatCurrency(totalSalesVal), change: "+22.4%", trend: "up" },
-            { label: "Pickup Orders", value: pickupOrdersCount.toLocaleString("en-IN"), change: "+17.3%", trend: "up" },
-            { label: "Average Order Value", value: formatCurrency(avgOrderVal), change: "+8.2%", trend: "up" }
-        ];
+        const changes = analyticsData.metrics_changes || {
+            total_orders: { change: "+0.0%", trend: "neutral" },
+            total_sales: { change: "+0.0%", trend: "neutral" },
+            pickup_orders: { change: "+0.0%", trend: "neutral" },
+            avg_order: { change: "+0.0%", trend: "neutral" }
+        };
 
         // Determine range in days
         const activeStart = startDate ? new Date(startDate) : new Date();
         const activeEnd = endDate ? new Date(endDate) : new Date(activeStart);
         const daysDiff = Math.ceil((activeEnd.getTime() - activeStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+        // Formatted metric cards
+        const metrics = [
+            { label: "Total Orders", value: totalOrdersCount.toLocaleString("en-IN"), change: changes.total_orders.change, trend: changes.total_orders.trend, daysDiff },
+            { label: "Total Revenue", value: formatCurrency(totalSalesVal), change: changes.total_sales.change, trend: changes.total_sales.trend, daysDiff },
+            { label: "Pickup Orders", value: pickupOrdersCount.toLocaleString("en-IN"), change: changes.pickup_orders.change, trend: changes.pickup_orders.trend, daysDiff },
+            { label: "Average Order Value", value: formatCurrency(avgOrderVal), change: changes.avg_order.change, trend: changes.avg_order.trend, daysDiff }
+        ];
 
         // ─── DYNAMIC CHART DATA GENERATION ───
         let chartPoints = [];
@@ -355,11 +362,9 @@ export default function InsightsPage() {
                                 if (tab === "Today") {
                                     setDateRange([today, today]);
                                 } else if (tab === "Week") {
-                                    const currentDay = today.getDay();
-                                    const diffToMonday = currentDay === 0 ? -6 : 1 - currentDay;
-                                    const monday = new Date(today);
-                                    monday.setDate(today.getDate() + diffToMonday);
-                                    setDateRange([monday, today]);
+                                    const last7Days = new Date();
+                                    last7Days.setDate(today.getDate() - 6);
+                                    setDateRange([last7Days, today]);
                                 } else { // Month
                                     const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
                                     setDateRange([firstDay, today]);
@@ -421,11 +426,36 @@ export default function InsightsPage() {
 
                                 <div className="flex items-end justify-between">
                                     <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">{metric.value}</h2>
-                                    <div className="flex items-center gap-1 bg-[#1ea753]/15 border border-[#1ea753]/30 px-2 py-0.5 rounded-lg text-[#1ea753] text-[10px] md:text-xs font-semibold">
-                                        <svg className="w-3 h-3 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                                        </svg>
-                                        {metric.change}
+                                    <div className="flex flex-col items-end gap-1.5">
+                                        <div className={`flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] md:text-xs font-semibold border ${
+                                            metric.trend === "up"
+                                                ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-500 dark:bg-[#1ea753]/15 dark:border-[#1ea753]/30 dark:text-[#1ea753]"
+                                                : metric.trend === "down"
+                                                ? "bg-red-500/10 border-red-500/25 text-red-500 dark:bg-red-950/35 dark:border-red-800/45 dark:text-red-400"
+                                                : "bg-zinc-500/10 border-zinc-800 text-zinc-400"
+                                        }`}>
+                                            <svg className="w-3 h-3 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                {metric.trend === "up" && (
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                                                )}
+                                                {metric.trend === "down" && (
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                                                )}
+                                                {metric.trend === "neutral" && (
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14" />
+                                                )}
+                                            </svg>
+                                            {metric.change}
+                                        </div>
+                                        <span className="text-[9px] md:text-[10px] text-zinc-500 font-medium whitespace-nowrap">
+                                            than {
+                                                selectedTab === "Today"
+                                                    ? "yesterday"
+                                                    : selectedTab === "Week"
+                                                    ? "last week"
+                                                    : `prev. ${metric.daysDiff} days`
+                                            }
+                                        </span>
                                     </div>
                                 </div>
                             </div>

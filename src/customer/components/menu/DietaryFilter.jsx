@@ -17,6 +17,7 @@ export default function DietaryFilter({
         flex
         gap-3
         overflow-x-auto
+        scrollbar-hide
         mt-5
         pb-2
       "
