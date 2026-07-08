@@ -189,12 +189,26 @@ export default function CustomerMenu(){
       }
     };
 
+    // User interaction events release programmatic scroll lock immediately
+    const releaseLock = () => {
+      isScrollingFromTabClick.current = false;
+    };
+
     window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("touchstart", releaseLock, { passive: true });
+    window.addEventListener("mousedown", releaseLock, { passive: true });
+    window.addEventListener("wheel", releaseLock, { passive: true });
+    window.addEventListener("keydown", releaseLock, { passive: true });
+
     // Run once initially to set the correct state on load
     handleScroll();
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("touchstart", releaseLock);
+      window.removeEventListener("mousedown", releaseLock);
+      window.removeEventListener("wheel", releaseLock);
+      window.removeEventListener("keydown", releaseLock);
       if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
     };
   }, [uniqueCategories, activeCategory]);
