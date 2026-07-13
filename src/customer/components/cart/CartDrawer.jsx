@@ -24,10 +24,11 @@ export default function CartDrawer({
   closeNamePopup
 }) {
 
-  const total = cart.reduce(
-    (sum, item) => sum + item.price * item.qty,
-    0
-  );
+  const total = cart.reduce((sum, item) => {
+    const price = parseFloat(item.price);
+    const qty = parseInt(item.qty, 10);
+    return sum + (isNaN(price) ? 0 : price) * (isNaN(qty) ? 0 : qty);
+  }, 0);
 
   return (
     <>
@@ -459,7 +460,7 @@ export default function CartDrawer({
                   mb-5
                 "
               >
-                Please enter your WhatsApp number to get your order status.
+                Please enter your WhatsApp number to get your order updates.
               </p>
 
               <input
@@ -493,15 +494,12 @@ export default function CartDrawer({
 
                     setShowPhonePopup(false)
                   }}
-                  disabled={isCheckoutLoading}
                   className="
                     flex-1
                     py-4
                     rounded-2xl
                     bg-gray-100
                     font-bold
-                    disabled:opacity-50
-                    disabled:cursor-not-allowed
                   "
                 >
                   Cancel
@@ -509,7 +507,6 @@ export default function CartDrawer({
 
                 <button
                   onClick={continueWithPhone}
-                  disabled={isCheckoutLoading}
                   className="
                     flex-1
                     py-4
@@ -517,22 +514,9 @@ export default function CartDrawer({
                     bg-black
                     text-white
                     font-bold
-                    disabled:opacity-75
-                    disabled:cursor-not-allowed
-                    flex
-                    items-center
-                    justify-center
-                    gap-2
                   "
                 >
-                  {isCheckoutLoading ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span>Please wait...</span>
-                    </>
-                  ) : (
-                    "Continue"
-                  )}
+                  Continue
                 </button>
 
               </div>
@@ -609,15 +593,12 @@ export default function CartDrawer({
 
                 <button
                   onClick={closeNamePopup}
-                  disabled={isCheckoutLoading}
                   className="
                     flex-1
                     py-4
                     rounded-2xl
                     bg-gray-100
                     font-bold
-                    disabled:opacity-50
-                    disabled:cursor-not-allowed
                   "
                 >
                   Cancel
@@ -625,7 +606,6 @@ export default function CartDrawer({
 
                 <button
                   onClick={saveNameAndCheckout}
-                  disabled={isCheckoutLoading}
                   className="
                     flex-1
                     py-4
@@ -633,22 +613,9 @@ export default function CartDrawer({
                     bg-black
                     text-white
                     font-bold
-                    disabled:opacity-75
-                    disabled:cursor-not-allowed
-                    flex
-                    items-center
-                    justify-center
-                    gap-2
                   "
                 >
-                  {isCheckoutLoading ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span>Please wait...</span>
-                    </>
-                  ) : (
-                    "Continue"
-                  )}
+                  Continue
                 </button>
 
               </div>

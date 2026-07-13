@@ -1,8 +1,24 @@
+import { useEffect, useRef } from "react";
+
 export default function CategoryTabs({
   categories,
   activeCategory,
   setActiveCategory
 }) {
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      const activeBtn = containerRef.current.querySelector('[data-active="true"]');
+      if (activeBtn) {
+        activeBtn.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "center"
+        });
+      }
+    }
+  }, [activeCategory]);
 
   return (
     <div
@@ -24,6 +40,7 @@ export default function CategoryTabs({
     >
 
       <div
+        ref={containerRef}
         className="
           flex
           gap-2.5
@@ -36,6 +53,7 @@ export default function CategoryTabs({
 
           <button
             key={category}
+            data-active={activeCategory === category}
             onClick={() => setActiveCategory(category)}
             className={`
               whitespace-nowrap

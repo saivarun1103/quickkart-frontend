@@ -20,12 +20,16 @@ export default function Orders() {
   const [error, setError] = useState(false);
 
   const [isDarkMode, setIsDarkMode] = useState(
+    localStorage.getItem("theme") === "dark" ||
     document.documentElement.classList.contains("dark")
   );
 
   useEffect(() => {
     const handleThemeChange = () => {
-      setIsDarkMode(document.documentElement.classList.contains("dark"));
+      setIsDarkMode(
+        localStorage.getItem("theme") === "dark" ||
+        document.documentElement.classList.contains("dark")
+      );
     };
     window.addEventListener("theme-changed", handleThemeChange);
     handleThemeChange();

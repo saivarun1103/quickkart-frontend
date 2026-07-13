@@ -25,7 +25,6 @@ export default function Register() {
     const [newTypeVal, setNewTypeVal] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [submitted, setSubmitted] = useState(false);
 
     // Fetch existing types on mount
     useEffect(() => {
@@ -124,7 +123,8 @@ export default function Register() {
             const data = await response.json();
 
             if (response.ok) {
-                setSubmitted(true);
+                alert("Business Registered!");
+                navigate(-1);
             } else {
                 alert(data.detail || "Registration failed");
             }
@@ -135,84 +135,6 @@ export default function Register() {
             setLoading(false);
         }
     };
-
-    if (submitted) {
-        return (
-            <div
-                style={{
-                    minHeight: "100vh",
-                    background: "#242424",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    padding: "45px 20px",
-                    fontFamily: "Inter, sans-serif",
-                }}
-            >
-                <div
-                    style={{
-                        width: "420px",
-                        background: "#1e1e1e",
-                        padding: "40px",
-                        borderRadius: "20px",
-                        boxShadow: "0 10px 40px rgba(0,0,0,0.3)",
-                        textAlign: "center",
-                    }}
-                >
-                    <div
-                        style={{
-                            width: "60px",
-                            height: "60px",
-                            borderRadius: "50%",
-                            background: "rgba(16, 185, 129, 0.1)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            margin: "0 auto 20px auto",
-                            color: "#10b981",
-                        }}
-                    >
-                        <svg
-                            width="30"
-                            height="30"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="3"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        >
-                            <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                    </div>
-                    <h1 style={{ color: "white", fontSize: "22px", fontWeight: "bold", marginBottom: "15px" }}>
-                        Application Submitted
-                    </h1>
-                    <p style={{ color: "#aaa", fontSize: "14px", lineHeight: "1.6", marginBottom: "30px" }}>
-                        Your application has been submitted for review.
-                        <br />
-                        You will receive access once your business is approved.
-                    </p>
-                    <button
-                        onClick={() => navigate(-1)}
-                        style={{
-                            width: "100%",
-                            padding: "14px",
-                            borderRadius: "12px",
-                            border: "none",
-                            background: "#2563eb",
-                            color: "white",
-                            fontWeight: "bold",
-                            cursor: "pointer",
-                            fontSize: "15px",
-                        }}
-                    >
-                        Go Back
-                    </button>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div
@@ -277,7 +199,7 @@ export default function Register() {
 
                 <input
                     name="contact_number"
-                    placeholder="Contact Number (Founder only)"
+                    placeholder="Contact Number"
                     value={form.contact_number}
                     onChange={handleChange}
                     style={inputStyle}
@@ -441,10 +363,10 @@ export default function Register() {
                     {loading ? (
                         <span className="btn-loading-content">
                             <span className="spinner"></span>
-                            Submitting...
+                            Registering...
                         </span>
                     ) : (
-                        "Submit for Review"
+                        "Register"
                     )}
                 </button>
 

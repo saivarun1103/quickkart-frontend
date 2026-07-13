@@ -109,9 +109,38 @@ export default function FoodCard({
                 text-lg
                 font-bold
                 text-gray-900 dark:text-white
+                flex
+                items-center
+                gap-2
               "
             >
-              {item.name}
+              {item.dietary_type && (
+                <span className={`w-3.5 h-3.5 border flex items-center justify-center shrink-0 rounded-sm p-0.5 ${
+                  item.dietary_type === "Veg" || item.dietary_type === "Vegan"
+                    ? "border-green-600"
+                    : item.dietary_type === "Egg"
+                    ? "border-yellow-600"
+                    : "border-red-600"
+                }`}>
+                  {item.dietary_type === "Egg" ? (
+                    <svg 
+                      className="w-2.5 h-2.5 fill-yellow-600 stroke-yellow-600 shrink-0" 
+                      viewBox="0 0 100 100"
+                      strokeWidth="12"
+                      strokeLinejoin="round"
+                    >
+                      <polygon points="50,22 82,78 18,78" />
+                    </svg>
+                  ) : (
+                    <span className={`w-1.5 h-1.5 rounded-full ${
+                      item.dietary_type === "Veg" || item.dietary_type === "Vegan"
+                        ? "bg-green-600"
+                        : "bg-red-600"
+                    }`} />
+                  )}
+                </span>
+              )}
+              <span>{item.name}</span>
             </h3>
 
 

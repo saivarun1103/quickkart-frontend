@@ -7,10 +7,11 @@ export default function FloatingCart({ cart, checkout }) {
     0
   );
 
-  const totalPrice = cart.reduce(
-    (sum, item) => sum + item.price * item.qty,
-    0
-  );
+  const totalPrice = cart.reduce((sum, item) => {
+    const price = parseFloat(item.price);
+    const qty = parseInt(item.qty, 10);
+    return sum + (isNaN(price) ? 0 : price) * (isNaN(qty) ? 0 : qty);
+  }, 0);
 
   if (cart.length === 0) return null;
 

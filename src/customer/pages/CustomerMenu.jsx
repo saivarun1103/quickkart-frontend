@@ -18,12 +18,16 @@ export default function CustomerMenu(){
   const isScrollingFromTabClick = useRef(false);
   const scrollTimeout = useRef(null);
   const [isDarkMode, setIsDarkMode] = useState(
+    localStorage.getItem("theme") === "dark" ||
     document.documentElement.classList.contains("dark")
   );
 
   useEffect(() => {
     const handleThemeChange = () => {
-      setIsDarkMode(document.documentElement.classList.contains("dark"));
+      setIsDarkMode(
+        localStorage.getItem("theme") === "dark" ||
+        document.documentElement.classList.contains("dark")
+      );
     };
     window.addEventListener("theme-changed", handleThemeChange);
     handleThemeChange();
@@ -450,14 +454,11 @@ export default function CustomerMenu(){
       // CALCULATE TOTAL
       // -------------------------
 
-      const total = cart.reduce(
-
-        (sum, item) =>
-
-          sum + item.price * item.qty,
-
-        0
-      );
+      const total = cart.reduce((sum, item) => {
+        const price = parseFloat(item.price);
+        const qty = parseInt(item.qty, 10);
+        return sum + (isNaN(price) ? 0 : price) * (isNaN(qty) ? 0 : qty);
+      }, 0);
 
       // -------------------------
       // CREATE RAZORPAY ORDER
@@ -1801,11 +1802,28 @@ export default function CustomerMenu(){
                                                         </h3>
                                                         {item.dietary_type && (
                                                             <span className={`w-3.5 h-3.5 border flex items-center justify-center shrink-0 rounded-sm p-0.5 ${
-                                                                item.dietary_type === "Veg" ? "border-green-600" : "border-red-600"
+                                                                item.dietary_type === "Veg" || item.dietary_type === "Vegan"
+                                                                    ? "border-green-600"
+                                                                    : item.dietary_type === "Egg"
+                                                                    ? "border-yellow-600"
+                                                                    : "border-red-600"
                                                             }`}>
-                                                                <span className={`w-1.5 h-1.5 rounded-full ${
-                                                                    item.dietary_type === "Veg" ? "bg-green-600" : "bg-red-600"
-                                                                }`} />
+                                                                {item.dietary_type === "Egg" ? (
+                                                                    <svg 
+                                                                        className="w-2.5 h-2.5 fill-yellow-600 stroke-yellow-600 shrink-0" 
+                                                                        viewBox="0 0 100 100"
+                                                                        strokeWidth="12"
+                                                                        strokeLinejoin="round"
+                                                                    >
+                                                                        <polygon points="50,22 82,78 18,78" />
+                                                                    </svg>
+                                                                ) : (
+                                                                    <span className={`w-1.5 h-1.5 rounded-full ${
+                                                                        item.dietary_type === "Veg" || item.dietary_type === "Vegan"
+                                                                            ? "bg-green-600"
+                                                                            : "bg-red-600"
+                                                                    }`} />
+                                                                )}
                                                             </span>
                                                         )}
                                                     </div>
