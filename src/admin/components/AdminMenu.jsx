@@ -493,8 +493,11 @@ export default function AdminMenu() {
                         <div
                             className="
                                 flex
-                                items-center
+                                flex-col
+                                sm:flex-row
+                                sm:items-center
                                 justify-between
+                                gap-4
 
                                 mb-8
                             "
