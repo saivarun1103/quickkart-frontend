@@ -5,8 +5,8 @@ import BusinessHeader from "../components/layout/BusinessHeader";
 import FloatingCart from "../components/cart/FloatingCart";
 import CartDrawer from "../components/cart/CartDrawer";
 import { motion } from "framer-motion";
-import CategoryTabs from "../components/menu/CategoryTabs";
-// import DietaryFilter from "../components/menu/DietaryFilter";
+import FilterBar from "../components/menu/FilterBar";
+import MenuFloatingButton from "../components/menu/MenuFloatingButton";
 import ThemeToggle from "../components/ui/ThemeToggle";
 import { API_BASE } from "../../config";
 import logoImg from "../../assets/logo.png";
@@ -98,8 +98,10 @@ export default function CustomerMenu(){
   const isMaintenance =
     businessStatus ===
     "maintenance";
-//   const [dietaryFilter, setDietaryFilter] =
-//     useState("All");
+  const [selectedDietary, setSelectedDietary] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [sortBy, setSortBy] = useState("default");
+
   const filteredItems = items.filter((item) => {
     const matchesSearch = 
         !debouncedSearchQuery.trim()
@@ -107,7 +109,39 @@ export default function CustomerMenu(){
         : item.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
           (item.description && item.description.toLowerCase().includes(debouncedSearchQuery.toLowerCase()));
 
-    return matchesSearch;
+    if (!matchesSearch) return false;
+
+    if (selectedDietary !== "All") {
+      const itemDietary = (item.dietary_type || "").toLowerCase().trim();
+      if (selectedDietary === "Veg") {
+        if (itemDietary !== "veg" && itemDietary !== "vegan") return false;
+      } else if (selectedDietary === "Egg") {
+        if (itemDietary !== "egg") return false;
+      } else if (selectedDietary === "Non-veg") {
+        if (itemDietary !== "non veg" && itemDietary !== "non-veg" && itemDietary !== "nonveg" && itemDietary !== "non_veg") return false;
+      } else if (selectedDietary === "Vegan") {
+        if (itemDietary !== "vegan") return false;
+      }
+    }
+
+    if (selectedCategory !== "All") {
+      if (item.category !== selectedCategory) return false;
+    }
+
+    return true;
+  });
+
+  const sortedFilteredItems = [...filteredItems].sort((a, b) => {
+    if (sortBy === "price_low") {
+      return a.price - b.price;
+    }
+    if (sortBy === "price_high") {
+      return b.price - a.price;
+    }
+    if (sortBy === "name_asc") {
+      return a.name.localeCompare(b.name);
+    }
+    return 0;
   });
 
   const uniqueCategories = [...new Set(items.map(item => item.category))].sort((a, b) => a.localeCompare(b));
@@ -116,13 +150,13 @@ export default function CustomerMenu(){
   // Group filtered items by category, sorted available-first, then alphabetically by name
   const groupedItems = {};
   uniqueCategories.forEach(cat => {
-    const catItems = filteredItems.filter(item => item.category === cat);
+    const catItems = sortedFilteredItems.filter(item => item.category === cat);
     if (catItems.length > 0) {
       groupedItems[cat] = catItems.sort((a, b) => {
-        if (a.available !== b.available) {
+        if (sortBy === "default" && a.available !== b.available) {
           return a.available ? -1 : 1;
         }
-        return a.name.localeCompare(b.name);
+        return 0;
       });
     }
   });
@@ -130,6 +164,9 @@ export default function CustomerMenu(){
   // Handle smooth jump/scroll when category filter is clicked
   const handleCategoryClick = (category) => {
     setActiveCategory(category);
+    if (selectedCategory !== "All" && selectedCategory !== category) {
+      setSelectedCategory("All");
+    }
     isScrollingFromTabClick.current = true;
     
     if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
@@ -152,6 +189,72 @@ export default function CustomerMenu(){
     scrollTimeout.current = setTimeout(() => {
       isScrollingFromTabClick.current = false;
     }, 800);
+  };
+
+  const renderEmptyState = () => {
+    let icon = "🔍";
+    let title = "No items found";
+    let description = "No menu items match your current filter criteria.";
+    let showReset = true;
+
+    if (selectedDietary !== "All" && searchQuery.trim()) {
+      icon = "🍳";
+      title = `No ${selectedDietary} items found`;
+      description = `We couldn't find any ${selectedDietary.toLowerCase()} items matching "${searchQuery}".`;
+    } else if (selectedDietary !== "All") {
+      const icons = {
+        Veg: "🥦",
+        Egg: "🥚",
+        "Non-veg": "🍗",
+        Vegan: "🌱"
+      };
+      icon = icons[selectedDietary] || "🍽️";
+      title = `No ${selectedDietary} items available`;
+      description = `This outlet currently has no ${selectedDietary.toLowerCase()} items on the menu.`;
+    } else if (selectedCategory !== "All" && searchQuery.trim()) {
+      icon = "🔍";
+      title = `No items in ${selectedCategory}`;
+      description = `No items matching "${searchQuery}" in ${selectedCategory}.`;
+    } else if (selectedCategory !== "All") {
+      icon = "📂";
+      title = `No items in ${selectedCategory}`;
+      description = `There are currently no items available in this category.`;
+    } else if (searchQuery.trim()) {
+      icon = "🔍";
+      title = "No search results";
+      description = `We couldn't find any items matching "${searchQuery}". Try adjusting your keywords.`;
+    } else {
+      icon = "🍽️";
+      title = "No items available";
+      description = "There are no items currently available in the menu.";
+      showReset = false;
+    }
+
+    return (
+      <div className="flex flex-col items-center justify-center py-20 px-4 text-center select-none">
+        <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-900/60 rounded-full flex items-center justify-center mb-4 text-3xl border border-zinc-200/50 dark:border-zinc-800/80 shadow-sm">
+          {icon}
+        </div>
+        <h3 className="text-lg font-black text-zinc-800 dark:text-zinc-200 tracking-tight">
+          {title}
+        </h3>
+        <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1.5 max-w-xs leading-normal">
+          {description}
+        </p>
+        {showReset && (
+          <button
+            onClick={() => {
+              setSelectedDietary("All");
+              setSelectedCategory("All");
+              setSearchQuery("");
+            }}
+            className="mt-5 px-4 py-2 bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-bold rounded-full hover:bg-emerald-500 hover:text-white transition-all cursor-pointer shadow-sm"
+          >
+            Clear Filters & Show All
+          </button>
+        )}
+      </div>
+    );
   };
 
   // Scrollspy effect: Sync active category tab on manual window scroll
@@ -1626,16 +1729,17 @@ export default function CustomerMenu(){
                 )}
             </div>
 
-            <CategoryTabs
+            <FilterBar
+                selectedDietary={selectedDietary}
+                setSelectedDietary={setSelectedDietary}
+                selectedCategory={selectedCategory}
+                setSelectedCategory={setSelectedCategory}
+                sortBy={sortBy}
+                setSortBy={setSortBy}
                 categories={categories}
-                activeCategory={activeCategory}
-                setActiveCategory={handleCategoryClick}
+                totalItemsCount={items.length}
+                filteredCount={filteredItems.length}
             />
-
-            {/* <DietaryFilter
-                dietaryFilter={dietaryFilter}
-                setDietaryFilter={setDietaryFilter}
-            /> */}
 
             {/* <div className="mt-6">
                 <input
@@ -1703,17 +1807,7 @@ export default function CustomerMenu(){
             {isSearching ? (
               <MenuSkeleton />
             ) : Object.keys(groupedItems).length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 px-4 text-center select-none">
-                <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-900/60 rounded-full flex items-center justify-center mb-4 text-2xl border border-zinc-200/50 dark:border-zinc-800/80 shadow-sm">
-                  🔍
-                </div>
-                <h3 className="text-lg font-extrabold text-zinc-800 dark:text-zinc-200">
-                  No results found
-                </h3>
-                <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1.5 max-w-xs leading-normal">
-                  We couldn't find any items matching "{searchQuery}". Try adjusting your keywords or browse other categories!
-                </p>
-              </div>
+              renderEmptyState()
             ) : (
               <>
                 {/* Desktop / Tablet View Grid */}
@@ -1885,6 +1979,14 @@ export default function CustomerMenu(){
                 </motion.div>
               </>
             )}
+
+            {/* Floating Menu Category Button */}
+            <MenuFloatingButton
+                categories={categories}
+                groupedItems={groupedItems}
+                activeCategory={activeCategory}
+                onSelectCategory={handleCategoryClick}
+            />
         </div>
         {isVerifyingPayment && (
           <div className="fixed inset-0 z-[200] bg-black/75 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center select-none">
